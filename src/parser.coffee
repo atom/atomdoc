@@ -12,11 +12,12 @@ parse = (docString) ->
   tokens = lexer.lex(docString)
   doc = new Doc(docString)
 
-  parseSummaryAndDescription(tokens, doc)
+  _.extend doc, parseSummaryAndDescription(tokens)
+  _.extend doc, parseArguments(tokens)
 
   doc
 
-parseSummaryAndDescription = (tokens, doc) ->
+parseSummaryAndDescription = (tokens) ->
   visibility = 'Private'
   summary = ''
   description = []
@@ -34,11 +35,67 @@ parseSummaryAndDescription = (tokens, doc) ->
       summary = summary.replace(visibilityMatch[0], '')
 
   description.unshift(summary)
-  doc.description = description.join('\n\n')
-  doc.summary = summary
-  doc.visibility = visibility
+  description = description.join('\n\n')
 
-parseArguments = (tokens, doc) ->
+  {description, summary, visibility}
+
+parseArguments = (tokens) ->
+  argumentTypes = [
+    'list_start',
+    'list_item_start', 'loose_item_start',
+    'text', 'space'
+    'loose_item_end', 'list_item_end'
+    'list_end'
+  ]
+
+  args = []
+  argumentsList = null
+  argumentsListStack = []
+  argument = null
+  argumentStack = []
+  while tokens.length and tokens[0].type in argumentTypes
+    token = tokens.shift()
+    switch token.type
+      when 'list_start'
+        argumentsList = []
+        argumentsListStack.push argumentsList
+
+      when 'list_item_start', 'loose_item_start'
+        argument = {}
+        argumentStack.push argument
+
+      when 'text'
+        argument.text ?= []
+        argument.text.push token.text
+
+      when 'list_item_end', 'loose_item_end'
+        _.extend argument, parseArgument(argument.text.join(' '))
+        argumentsList.push argument
+        delete argument.text
+
+        argumentStack.pop()
+        argument = _.last argumentStack
+
+      when 'list_end'
+        if argument?
+          argument.arguments = argumentsList
+          argumentsListStack.pop()
+          argumentsList = _.last argumentsListStack
+        else
+          args = argumentsList
+
+  {arguments: args}
+
+parseArgument = (argumentString) ->
+  name = null
+  type = null
+  description = argumentString
+
+  if nameMatches = /^\s*`([\w\.-]+)`(\s*[:-])?\s*/.exec(argumentString)
+    name = nameMatches[1]
+    description = description.replace(nameMatches[0], '')
+
+  {name, description}
 
 parseExamples = (tokens, doc) ->
 
