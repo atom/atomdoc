@@ -1,0 +1,8 @@
+.travis.yml
+.DS_Store
+npm-debug.log
+v8.log
+spec
+.npmignore
+*.coffee
+.node-version

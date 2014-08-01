@@ -1,0 +1,7 @@
+node_modules/
+.DS_Store
+npm-debug.log
+v8.log
+lib/
+*.js
+.node-version

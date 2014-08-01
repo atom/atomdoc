@@ -1,0 +1,38 @@
+{
+  "name": "atomdoc",
+  "version": "0.0.1",
+  "description": "A atomdoc parser",
+  "main": "./lib/atomdoc.js",
+  "scripts": {
+    "test": "grunt test",
+    "prepublish": "grunt clean lint coffee"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/atom/atomdoc.git"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://github.com/atom/atomdoc/raw/master/LICENSE.md"
+    }
+  ],
+  "bugs": {
+    "url": "https://github.com/atom/atomdoc/issues"
+  },
+  "homepage": "http://atom.github.io/atomdoc",
+  "dependencies": {
+    "marked": "~0.3",
+    "underscore": "~1.6",
+    "underscore.string": ">= 0.1.0"
+  },
+  "devDependencies": {
+    "jasmine-focused": "1.x",
+    "grunt-contrib-coffee": "~0.7.0",
+    "grunt-cli": "~0.1.8",
+    "grunt": "~0.4.1",
+    "grunt-shell": "~0.2.2",
+    "grunt-coffeelint": "0.0.6",
+    "rimraf": "~2.1"
+  }
+}
