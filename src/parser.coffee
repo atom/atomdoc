@@ -1,6 +1,7 @@
 _ = require 'underscore'
 marked = require 'marked'
 Doc = require './doc'
+{getLinkMatch} = require './utils'
 
 # Public: Parses a docString
 #
@@ -94,8 +95,9 @@ parseArgument = (argumentString) ->
   if nameMatches = /^\s*`([\w\.-]+)`(\s*[:-])?\s*/.exec(argumentString)
     name = nameMatches[1]
     description = description.replace(nameMatches[0], '')
+    type = getLinkMatch(description)
 
-  {name, description}
+  {name, description, type}
 
 parseExamples = (tokens, doc) ->
 

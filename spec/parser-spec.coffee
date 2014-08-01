@@ -47,7 +47,7 @@ describe "parser", ->
         expect(doc.arguments).toEqual [
           name: 'fn'
           description: 'A {Function} to call inside the transaction.'
-          # type: 'Function'
+          type: 'Function'
         ]
 
       it "parses names with all the accepted characters", ->
@@ -76,23 +76,29 @@ describe "parser", ->
         expect(doc.arguments).toEqual [{
           name: '1'
           description: 'one'
+          type: null
           arguments:[{
             name: '1.1'
             description: 'two'
+            type: null
           },{
             name: '1.2'
             description: 'three'
+            type: null
             arguments: [{
               name: '1.2.1'
               description: 'four'
+              type: null
             }]
           },{
             name: '1.3'
             description: 'five'
+            type: null
           }]
         },{
           name: '2'
           description: 'six'
+          type: null
         }]
 
     xit "parses large doc string with multiple arguments and a return value", ->
