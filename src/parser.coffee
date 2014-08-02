@@ -64,6 +64,75 @@ parseExamples = (tokens, doc) ->
 
 parseEvents = (tokens, doc) ->
 
+parseArgumentList = (tokens) ->
+  ArgumentListTokenTypes = [
+    'list_start',
+    'list_item_start', 'loose_item_start',
+    'text', 'space'
+    'loose_item_end', 'list_item_end'
+    'list_end'
+  ]
+
+  args = []
+  argumentsList = null
+  argumentsListStack = []
+  argument = null
+  argumentStack = []
+  while tokens.length and tokens[0].type in ArgumentListTokenTypes
+    token = tokens.shift()
+    switch token.type
+      when 'list_start'
+        argumentsList = []
+        argumentsListStack.push argumentsList
+
+      when 'list_item_start', 'loose_item_start'
+        argument = {}
+        argumentStack.push argument
+
+      when 'text'
+        argument.text ?= []
+        argument.text.push token.text
+
+      when 'list_item_end', 'loose_item_end'
+        _.extend argument, parseListItem(argument.text.join(' '))
+        argumentsList.push argument
+        delete argument.text
+
+        argumentStack.pop()
+        argument = _.last argumentStack
+
+      when 'list_end'
+        if argument?
+          argument.arguments = argumentsList
+          argumentsListStack.pop()
+          argumentsList = _.last argumentsListStack
+        else
+          args = argumentsList
+
+  args
+
+parseListItem = (argumentString) ->
+  name = null
+  type = null
+  description = argumentString
+
+  if nameMatches = /^\s*`([\w\.-]+)`(\s*[:-])?\s*/.exec(argumentString)
+    name = nameMatches[1]
+    description = description.replace(nameMatches[0], '')
+    type = getLinkMatch(description)
+
+  {name, description, type}
+
+module.exports = {parse}
+
+###
+Section: Generation
+
+These methods will consume tokens and return a markdown representation of the
+tokens. Yeah, it generates markdown from the lexed markdown tokens.
+###
+
+# Will read / consume tokens down to a special section (args, events, examples)
 generateDescription = (tokens) ->
   description = []
   while token = _.first(tokens)
@@ -165,64 +234,3 @@ generateList = (tokens) ->
     break if depth < 0
 
   lines.join '\n'
-
-parseArgumentList = (tokens) ->
-  ArgumentListTokenTypes = [
-    'list_start',
-    'list_item_start', 'loose_item_start',
-    'text', 'space'
-    'loose_item_end', 'list_item_end'
-    'list_end'
-  ]
-
-  args = []
-  argumentsList = null
-  argumentsListStack = []
-  argument = null
-  argumentStack = []
-  while tokens.length and tokens[0].type in ArgumentListTokenTypes
-    token = tokens.shift()
-    switch token.type
-      when 'list_start'
-        argumentsList = []
-        argumentsListStack.push argumentsList
-
-      when 'list_item_start', 'loose_item_start'
-        argument = {}
-        argumentStack.push argument
-
-      when 'text'
-        argument.text ?= []
-        argument.text.push token.text
-
-      when 'list_item_end', 'loose_item_end'
-        _.extend argument, parseListItem(argument.text.join(' '))
-        argumentsList.push argument
-        delete argument.text
-
-        argumentStack.pop()
-        argument = _.last argumentStack
-
-      when 'list_end'
-        if argument?
-          argument.arguments = argumentsList
-          argumentsListStack.pop()
-          argumentsList = _.last argumentsListStack
-        else
-          args = argumentsList
-
-  args
-
-parseListItem = (argumentString) ->
-  name = null
-  type = null
-  description = argumentString
-
-  if nameMatches = /^\s*`([\w\.-]+)`(\s*[:-])?\s*/.exec(argumentString)
-    name = nameMatches[1]
-    description = description.replace(nameMatches[0], '')
-    type = getLinkMatch(description)
-
-  {name, description, type}
-
-module.exports = {parse}
