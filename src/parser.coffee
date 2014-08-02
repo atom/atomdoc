@@ -23,8 +23,14 @@ parse = (docString) ->
 
   _.extend doc, parseSummaryAndDescription(tokens)
 
-  section = parseArgumentsSection(tokens)
-  doc.addSection(section) if section?
+  while tokens.length
+    section = null
+    section ?= parseArgumentsSection(tokens)
+
+    if section?
+      doc.addSection(section)
+    else
+      break
 
   doc
 
@@ -55,8 +61,10 @@ parseArgumentsSection = (tokens) ->
 
   if firstToken.type == 'list_start'
     section.arguments = parseArgumentList(tokens)
-  # else
-  #   tokens.shift()
+  else
+    tokens.shift() # consume the header
+    section.description = generateDescription(tokens)
+    section.arguments = parseArgumentList(tokens)
 
   section
 

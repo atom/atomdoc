@@ -278,6 +278,45 @@ describe "parser", ->
             type: null
           }]
 
+      describe 'when there is an "Arguments" header', ->
+        it "parses arguments without a description", ->
+          str = """
+            Public: Batch multiple operations as a single undo/redo step.
+
+            ## Arguments
+
+            * `something` A {Bool}
+          """
+          doc = parse(str)
+          expect(doc.sections[0]).toEqual
+            type: 'arguments'
+            description: ''
+            arguments: [
+              name: 'something'
+              description: 'A {Bool}'
+              type: 'Bool'
+            ]
+
+        it "parses arguments with a description", ->
+          str = """
+            Public: Batch multiple operations as a single undo/redo step.
+
+            ## Arguments
+
+            Some description
+
+            * `something` A {Bool}
+          """
+          doc = parse(str)
+          expect(doc.sections[0]).toEqual
+            type: 'arguments'
+            description: 'Some description'
+            arguments: [
+              name: 'something'
+              description: 'A {Bool}'
+              type: 'Bool'
+            ]
+
     xit "parses large doc string with multiple arguments and a return value", ->
       str = """
         Public: Batch multiple operations as a single undo/redo step.
