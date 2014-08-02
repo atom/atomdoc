@@ -26,11 +26,12 @@ parse = (docString) ->
   while tokens.length
     section = null
     section ?= parseArgumentsSection(tokens)
+    section ?= parseEventsSection(tokens)
 
     if section?
       doc.addSection(section)
     else
-      break
+      tokens.shift()
 
   doc
 
@@ -68,9 +69,21 @@ parseArgumentsSection = (tokens) ->
 
   section
 
-parseExamples = (tokens, doc) ->
+parseEventsSection = (tokens) ->
+  firstToken = _.first(tokens)
+  if firstToken and firstToken.type == 'heading' and firstToken.text is 'Events' and firstToken.depth is 2
 
-parseEvents = (tokens, doc) ->
+    section =
+      type: 'events'
+      description: ''
+
+    tokens.shift() # consume the header
+    section.description = generateDescription(tokens)
+    section.events = parseArgumentList(tokens)
+
+    section
+
+parseExamples = (tokens) ->
 
 parseArgumentList = (tokens) ->
   ArgumentListTokenTypes = [
