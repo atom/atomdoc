@@ -6,6 +6,14 @@ Doc = require './doc'
 SpecialHeadingDepth = 2
 SpecialHeadings = ['Arguments', 'Events', 'Examples']
 
+ReturnsRegex = '^\\s*Returns'
+
+###
+Section: Parsing
+
+Translating things from markdown into our json format.
+###
+
 # Public: Parses a docString
 #
 # * `docString` a string from the documented object to be parsed
@@ -32,7 +40,11 @@ parse = (docString) ->
     if section?
       doc.addSection(section)
     else
-      tokens.shift()
+      returnValues = parseReturnValues(tokens)
+      if returnValues?
+        doc.setReturnValues(returnValues)
+      else
+        tokens.shift()
 
   doc
 
@@ -112,6 +124,35 @@ parseExamplesSection = (tokens) ->
 
   section if section.examples.length
 
+parseReturnValues = (tokens) ->
+  firstToken = _.first(tokens)
+  return unless firstToken and firstToken.type in ['paragraph', 'text'] and new RegExp(ReturnsRegex).test(firstToken.text)
+
+  token = tokens.shift()
+  normalizedString = token.text.replace(/\n/g, ' ').replace(/\s{2,}/g, ' ')
+
+  returnValues = null
+
+  while normalizedString
+    nextIndex = normalizedString.indexOf('Returns', 1)
+    returnString = normalizedString
+    if nextIndex > -1
+      returnString = normalizedString.substring(0, nextIndex)
+      normalizedString =  normalizedString.substring(nextIndex, normalizedString.length)
+    else
+      normalizedString = null
+
+    returnValues ?= []
+    returnValues.push
+      type: getLinkMatch(returnString)
+      description: returnString.trim()
+
+  returnValues
+
+# Parses argument lists like this one:
+#
+# * `something` A {Bool}
+#   * `somethingNested` A nested object
 parseArgumentList = (tokens) ->
   ArgumentListTokenTypes = [
     'list_start',
@@ -173,6 +214,7 @@ parseListItem = (argumentString) ->
 
 module.exports = {parse}
 
+
 ###
 Section: Generation
 
@@ -181,7 +223,10 @@ tokens. Yeah, it generates markdown from the lexed markdown tokens.
 ###
 
 stopOnSectionBoundaries = (token, tokens) ->
-  if token.type is 'heading'
+  if token.type in ['paragraph', 'text']
+    return false if new RegExp(ReturnsRegex).test(token.text)
+
+  else if token.type is 'heading'
     return false if token.depth == SpecialHeadingDepth and token.text in SpecialHeadings
 
   else if token.type is 'list_start'

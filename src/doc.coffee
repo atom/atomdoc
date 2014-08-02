@@ -16,6 +16,12 @@ class Doc
   addSection: (section) ->
     @sections.push section
 
+  setReturnValues: (returnValues) ->
+    if @returnValues?
+      @returnValues = @returnValues.concat returnValues
+    else
+      @returnValues = returnValues
+
   toJSON: ->
     {
       @visibility

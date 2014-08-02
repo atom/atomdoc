@@ -445,6 +445,45 @@ describe "parser", ->
           """
         }]
 
+    it "parses Examples without a description", ->
+      str = """
+        Public: Batch multiple operations as a single undo/redo step.
+
+        * `something` A {Bool}
+
+        ## Examples
+
+        ```coffee
+        ok = 1
+        ```
+
+        ```coffee
+        ok = 2
+        ```
+      """
+      doc = parse(str)
+      expect(doc.sections[1]).toEqual
+        type: 'examples'
+        examples: [{
+          description: ''
+          code: 'ok = 1'
+          lang: 'coffee'
+          raw: """
+          ```coffee
+          ok = 1
+          ```
+          """
+        },{
+          description: ''
+          code: 'ok = 2'
+          lang: 'coffee'
+          raw: """
+          ```coffee
+          ok = 2
+          ```
+          """
+        }]
+
     it "ignores examples when no examples specified", ->
       str = """
         Public: Batch multiple operations as a single undo/redo step.
@@ -455,3 +494,69 @@ describe "parser", ->
       """
       doc = parse(str)
       expect(doc.sections[1]).not.toBeDefined()
+
+  describe 'parsing returns', ->
+    it "parses returns when there are arguments", ->
+      str = """
+        Public: Batch multiple operations as a single undo/redo step.
+
+        * `fn` A {Function} to call inside the transaction.
+
+        Returns a {Bool}
+      """
+      doc = parse(str)
+
+      expect(doc.sections[0]).toEqual
+        type: 'arguments'
+        description: ''
+        arguments: [
+          name: 'fn'
+          description: 'A {Function} to call inside the transaction.'
+          type: 'Function'
+        ]
+
+      expect(doc.returnValues).toEqual [{
+        type: 'Bool'
+        description: 'Returns a {Bool}'
+      }]
+
+    it "parses returns when they span multiple lines", ->
+      str = """
+        Public: Batch multiple operations as a single undo/redo step.
+
+        Returns a {Bool} when
+          X happens
+        Returns a {Function} when something else happens
+      """
+      doc = parse(str)
+
+      expect(doc.returnValues).toEqual [{
+        type: 'Bool'
+        description: 'Returns a {Bool} when X happens'
+      },{
+        type: 'Function'
+        description: 'Returns a {Function} when something else happens'
+      }]
+
+    it "parses returns when they break paragraphs", ->
+      str = """
+        Public: Batch multiple operations as a single undo/redo step.
+
+        Returns a {Bool} when
+          X happens
+        Returns a {Function} when something else happens
+
+        Returns another {Bool} when Y happens
+      """
+      doc = parse(str)
+
+      expect(doc.returnValues).toEqual [{
+        type: 'Bool'
+        description: 'Returns a {Bool} when X happens'
+      },{
+        type: 'Function'
+        description: 'Returns a {Function} when something else happens'
+      },{
+        type: 'Bool'
+        description: 'Returns another {Bool} when Y happens'
+      }]
