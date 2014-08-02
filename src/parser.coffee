@@ -27,6 +27,7 @@ parse = (docString) ->
     section = null
     section ?= parseArgumentsSection(tokens)
     section ?= parseEventsSection(tokens)
+    section ?= parseExamplesSection(tokens)
 
     if section?
       doc.addSection(section)
@@ -38,7 +39,7 @@ parse = (docString) ->
 parseSummaryAndDescription = (tokens) ->
   visibility = 'Private'
   summary = tokens.shift().text
-  description = generateDescription(tokens)
+  description = generateDescription(tokens, stopOnSectionBoundaries)
 
   if summary
     if visibilityMatch = /^\s*([a-zA-Z]+):\s*/.exec(summary)
@@ -52,7 +53,7 @@ parseSummaryAndDescription = (tokens) ->
 parseArgumentsSection = (tokens) ->
   firstToken = _.first(tokens)
   if firstToken and firstToken.type in ['list_start', 'heading']
-    return if firstToken.type == 'heading' and not (firstToken.text is 'Arguments' and firstToken.depth is 2)
+    return if firstToken.type == 'heading' and not (firstToken.text is 'Arguments' and firstToken.depth is SpecialHeadingDepth)
   else
     return
 
@@ -64,26 +65,52 @@ parseArgumentsSection = (tokens) ->
     section.arguments = parseArgumentList(tokens)
   else
     tokens.shift() # consume the header
-    section.description = generateDescription(tokens)
+    section.description = generateDescription(tokens, stopOnSectionBoundaries)
     section.arguments = parseArgumentList(tokens)
 
   section
 
 parseEventsSection = (tokens) ->
   firstToken = _.first(tokens)
-  if firstToken and firstToken.type == 'heading' and firstToken.text is 'Events' and firstToken.depth is 2
+  return unless firstToken and firstToken.type == 'heading' and firstToken.text is 'Events' and firstToken.depth is SpecialHeadingDepth
 
-    section =
-      type: 'events'
-      description: ''
+  section =
+    type: 'events'
+    description: ''
 
-    tokens.shift() # consume the header
-    section.description = generateDescription(tokens)
-    section.events = parseArgumentList(tokens)
+  tokens.shift() # consume the header
+  section.description = generateDescription(tokens, stopOnSectionBoundaries)
+  section.events = parseArgumentList(tokens)
 
-    section
+  section
 
-parseExamples = (tokens) ->
+parseExamplesSection = (tokens) ->
+  firstToken = _.first(tokens)
+  return unless firstToken and firstToken.type == 'heading' and firstToken.text is 'Examples' and firstToken.depth is SpecialHeadingDepth
+
+  section =
+    type: 'examples'
+    examples: []
+
+  tokens.shift() # consume the header
+
+  while tokens.length
+    description = generateDescription tokens, (token, tokens) ->
+      return false if token.type is 'code'
+      stopOnSectionBoundaries(token, tokens)
+
+    firstToken = _.first(tokens)
+    if firstToken.type is 'code'
+      example =
+        description: description
+        lang: firstToken.lang
+        code: firstToken.text
+        raw: generateCode(tokens)
+      section.examples.push example
+    else
+      break
+
+  section if section.examples.length
 
 parseArgumentList = (tokens) ->
   ArgumentListTokenTypes = [
@@ -153,10 +180,24 @@ These methods will consume tokens and return a markdown representation of the
 tokens. Yeah, it generates markdown from the lexed markdown tokens.
 ###
 
+stopOnSectionBoundaries = (token, tokens) ->
+  if token.type is 'heading'
+    return false if token.depth == SpecialHeadingDepth and token.text in SpecialHeadings
+
+  else if token.type is 'list_start'
+    listToken = null
+    for listToken in tokens
+      break if listToken.type == 'text'
+
+    # Check if list is an arguments list. If it starts with `someVar`, it is.
+    return false if listToken? and /^\s*`([\w\.-]+)`/.test(listToken.text)
+
 # Will read / consume tokens down to a special section (args, events, examples)
-generateDescription = (tokens) ->
+generateDescription = (tokens, tokenCallback) ->
   description = []
   while token = _.first(tokens)
+    break if tokenCallback? and tokenCallback(token, tokens) == false
+
     if token.type in ['paragraph', 'text']
       description.push generateParagraph(tokens)
 
@@ -167,21 +208,10 @@ generateDescription = (tokens) ->
       description.push generateCode(tokens)
 
     else if token.type is 'heading'
-      if token.depth == SpecialHeadingDepth and token.text in SpecialHeadings
-        break
-      else
-        description.push generateHeading(tokens)
+      description.push generateHeading(tokens)
 
     else if token.type is 'list_start'
-      listToken = null
-      for listToken in tokens
-        break if listToken.type == 'text'
-
-      # Check if list is an arguments list. If it starts with `someVar`, it is.
-      if listToken? and /^\s*`([\w\.-]+)`/.test(listToken.text)
-        break
-      else
-        description.push generateList(tokens)
+      description.push generateList(tokens)
 
     else break
 

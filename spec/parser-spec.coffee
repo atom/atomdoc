@@ -205,6 +205,32 @@ describe "parser", ->
             type: 'Function'
           ]
 
+    describe "with different visibilities", ->
+      it "parses a public visibility", ->
+        doc = parse("Public: Batch multiple operations as a single undo/redo step.")
+        expect(doc.visibility).toBe 'Public'
+        expect(doc.isPublic()).toBe true
+
+      it "parses Essential visibility", ->
+        doc = parse("Essential: Batch multiple operations as a single undo/redo step.")
+        expect(doc.visibility).toBe 'Essential'
+        expect(doc.isPublic()).toBe true
+
+      it "parses a private visibility", ->
+        doc = parse("Private: Batch multiple operations as a single undo/redo step.")
+        expect(doc.visibility).toBe 'Private'
+        expect(doc.isPublic()).toBe false
+
+      it "parses an internal visibility", ->
+        doc = parse("Internal: Batch multiple operations as a single undo/redo step.")
+        expect(doc.visibility).toBe 'Internal'
+        expect(doc.isPublic()).toBe false
+
+      it "parses no visibility", ->
+        doc = parse("Batch multiple operations as a single undo/redo step.")
+        expect(doc.visibility).toBe 'Private'
+        expect(doc.isPublic()).toBe false
+
   describe 'arguments', ->
     it "parses single level arguments", ->
       str = """
@@ -317,7 +343,7 @@ describe "parser", ->
           ]
 
   describe 'events section', ->
-    it "parses arguments without a description", ->
+    it "parses events without a description", ->
       str = """
         Public: Batch multiple operations as a single undo/redo step.
 
@@ -343,7 +369,7 @@ describe "parser", ->
           ]
         ]
 
-    it "parses arguments with a description", ->
+    it "parses events with a description", ->
       str = """
         Public: Batch multiple operations as a single undo/redo step.
 
@@ -375,28 +401,57 @@ describe "parser", ->
           ]
         ]
 
-  describe "with different visibilities", ->
-    it "parses a public visibility", ->
-      doc = parse("Public: Batch multiple operations as a single undo/redo step.")
-      expect(doc.visibility).toBe 'Public'
-      expect(doc.isPublic()).toBe true
+  describe 'examples section', ->
+    it "parses Examples with a description", ->
+      str = """
+        Public: Batch multiple operations as a single undo/redo step.
 
-    it "parses Essential visibility", ->
-      doc = parse("Essential: Batch multiple operations as a single undo/redo step.")
-      expect(doc.visibility).toBe 'Essential'
-      expect(doc.isPublic()).toBe true
+        * `something` A {Bool}
 
-    it "parses a private visibility", ->
-      doc = parse("Private: Batch multiple operations as a single undo/redo step.")
-      expect(doc.visibility).toBe 'Private'
-      expect(doc.isPublic()).toBe false
+        ## Examples
 
-    it "parses an internal visibility", ->
-      doc = parse("Internal: Batch multiple operations as a single undo/redo step.")
-      expect(doc.visibility).toBe 'Internal'
-      expect(doc.isPublic()).toBe false
+        This is example one
 
-    it "parses no visibility", ->
-      doc = parse("Batch multiple operations as a single undo/redo step.")
-      expect(doc.visibility).toBe 'Private'
-      expect(doc.isPublic()).toBe false
+        ```coffee
+        ok = 1
+        ```
+
+        This is example two
+
+        ```coffee
+        ok = 2
+        ```
+      """
+      doc = parse(str)
+      expect(doc.sections[1]).toEqual
+        type: 'examples'
+        examples: [{
+          description: 'This is example one'
+          code: 'ok = 1'
+          lang: 'coffee'
+          raw: """
+          ```coffee
+          ok = 1
+          ```
+          """
+        },{
+          description: 'This is example two'
+          code: 'ok = 2'
+          lang: 'coffee'
+          raw: """
+          ```coffee
+          ok = 2
+          ```
+          """
+        }]
+
+    it "ignores examples when no examples specified", ->
+      str = """
+        Public: Batch multiple operations as a single undo/redo step.
+
+        * `something` A {Bool}
+
+        ## Examples
+      """
+      doc = parse(str)
+      expect(doc.sections[1]).not.toBeDefined()

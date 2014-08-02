@@ -22,9 +22,6 @@ class Doc
       @summary
       @description
       @sections
-      # @arguments
-      # @examples
-      # @events
       @delegation
       @returnValues
     }
