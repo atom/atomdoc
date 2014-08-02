@@ -10,7 +10,7 @@ describe "parser", ->
         expect(doc.visibility).toBe 'Public'
         expect(doc.summary).toBe 'Batch multiple operations as a single undo/redo step.'
         expect(doc.description).toBe 'Batch multiple operations as a single undo/redo step.'
-        expect(doc.arguments).toEqual []
+        expect(doc.sections).toEqual []
         expect(doc.returnValue).not.toBeDefined()
         expect(doc.examples).not.toBeDefined()
         expect(doc.delegation).not.toBeDefined()
@@ -30,10 +30,181 @@ describe "parser", ->
 
           Here is some description.
         """
-        expect(doc.arguments).toEqual []
+        expect(doc.sections).toEqual []
         expect(doc.returnValue).not.toBeDefined()
         expect(doc.examples).not.toBeDefined()
         expect(doc.delegation).not.toBeDefined()
+
+      it "parses the description when there are code blocks", ->
+        str = """
+          Public: Batch multiple operations as a single undo/redo step.
+
+          ```coffee
+          a = 23
+          ```
+
+          Here is some description.
+
+          ```
+          for a in [1, 2, 3]
+          ```
+        """
+        doc = parse(str)
+
+        expect(doc.visibility).toBe 'Public'
+        expect(doc.summary).toBe 'Batch multiple operations as a single undo/redo step.'
+        expect(doc.description).toBe """
+          Batch multiple operations as a single undo/redo step.
+
+          ```coffee
+          a = 23
+          ```
+
+          Here is some description.
+
+          ```
+          for a in [1, 2, 3]
+          ```
+        """
+        expect(doc.sections).toEqual []
+
+      it "parses the description when there are headings", ->
+        str = """
+          Public: Batch multiple operations as a single undo/redo step.
+
+
+          ## Ok, computer
+
+          Do your thing
+        """
+        doc = parse(str)
+
+        expect(doc.visibility).toBe 'Public'
+        expect(doc.summary).toBe 'Batch multiple operations as a single undo/redo step.'
+        expect(doc.description).toBe """
+          Batch multiple operations as a single undo/redo step.
+
+          ## Ok, computer
+
+          Do your thing
+        """
+        expect(doc.sections).toEqual []
+
+      it "parses the description when there are blockquotes", ->
+        str = """
+          Public: Batch multiple operations as a single undo/redo step.
+
+
+          > this is a quote
+          > another one
+
+          Do your thing
+
+          > a second block
+        """
+        doc = parse(str)
+
+        expect(doc.visibility).toBe 'Public'
+        expect(doc.summary).toBe 'Batch multiple operations as a single undo/redo step.'
+        expect(doc.description).toBe """
+          Batch multiple operations as a single undo/redo step.
+
+          > this is a quote
+          > another one
+
+          Do your thing
+
+          > a second block
+        """
+        expect(doc.sections).toEqual []
+
+      describe 'when there are lists in the description', ->
+        it "parses the description when there are lists that are not arg lists", ->
+          str = """
+            Public: Batch multiple operations as a single undo/redo step.
+
+            * one
+              * two
+                ```coffee
+                ok = 1
+                ```
+              * This one has a blockquote, wtf?!
+                > something
+                > fuuu
+            * someotherArg
+
+            blah
+
+            * one
+              1. two
+              1. three
+                * four
+              1. five
+            * six
+
+            Painful.
+          """
+          doc = parse(str)
+
+          expect(doc.visibility).toBe 'Public'
+          expect(doc.summary).toBe 'Batch multiple operations as a single undo/redo step.'
+          expect(doc.description).toBe """
+            Batch multiple operations as a single undo/redo step.
+
+            * one
+              * two
+                ```coffee
+                ok = 1
+                ```
+              * This one has a blockquote, wtf?!
+                > something
+                > fuuu
+            * someotherArg
+
+            blah
+
+            * one
+              1. two
+              1. three
+                * four
+              1. five
+            * six
+
+            Painful.
+          """
+          expect(doc.sections).toEqual []
+
+        it "description lists do not interfere with the arguments", ->
+          str = """
+            Public: Batch multiple operations as a single undo/redo step.
+
+            * one
+            * two
+
+            Rainbows
+
+            * `fn` A {Function} to call inside the transaction.
+          """
+          doc = parse(str)
+
+          expect(doc.visibility).toBe 'Public'
+          expect(doc.summary).toBe 'Batch multiple operations as a single undo/redo step.'
+          expect(doc.description).toBe """
+            Batch multiple operations as a single undo/redo step.
+
+            * one
+            * two
+
+            Rainbows
+          """
+          expect(doc.sections[0]).toEqual
+            type: 'arguments'
+            description: ''
+            arguments: [
+              name: 'fn'
+              description: 'A {Function} to call inside the transaction.'
+              type: 'Function'
+            ]
 
     describe 'arguments', ->
       it "parses single level arguments", ->
@@ -44,11 +215,14 @@ describe "parser", ->
         """
         doc = parse(str)
 
-        expect(doc.arguments).toEqual [
-          name: 'fn'
-          description: 'A {Function} to call inside the transaction.'
-          type: 'Function'
-        ]
+        expect(doc.sections[0]).toEqual
+          type: 'arguments'
+          description: ''
+          arguments: [
+            name: 'fn'
+            description: 'A {Function} to call inside the transaction.'
+            type: 'Function'
+          ]
 
       it "parses names with all the accepted characters", ->
         str = """
@@ -58,7 +232,7 @@ describe "parser", ->
         """
         doc = parse(str)
 
-        expect(doc.arguments[0].name).toEqual 'oneTWO3.4-5_6'
+        expect(doc.sections[0].arguments[0].name).toEqual 'oneTWO3.4-5_6'
 
       it "handles nested arguments", ->
         str = """
@@ -73,33 +247,36 @@ describe "parser", ->
         """
         doc = parse(str)
 
-        expect(doc.arguments).toEqual [{
-          name: '1'
-          description: 'one'
-          type: null
-          arguments:[{
-            name: '1.1'
-            description: 'two'
+        expect(doc.sections[0]).toEqual
+          type: 'arguments'
+          description: ''
+          arguments: [{
+            name: '1'
+            description: 'one'
             type: null
-          },{
-            name: '1.2'
-            description: 'three'
-            type: null
-            arguments: [{
-              name: '1.2.1'
-              description: 'four'
+            arguments:[{
+              name: '1.1'
+              description: 'two'
+              type: null
+            },{
+              name: '1.2'
+              description: 'three'
+              type: null
+              arguments: [{
+                name: '1.2.1'
+                description: 'four'
+                type: null
+              }]
+            },{
+              name: '1.3'
+              description: 'five'
               type: null
             }]
           },{
-            name: '1.3'
-            description: 'five'
+            name: '2'
+            description: 'six'
             type: null
           }]
-        },{
-          name: '2'
-          description: 'six'
-          type: null
-        }]
 
     xit "parses large doc string with multiple arguments and a return value", ->
       str = """

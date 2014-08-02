@@ -8,6 +8,12 @@ module.exports =
     else
       null
 
+  multiplyString: (string, times) ->
+    ret = ''
+    for i in [0...times]
+      ret += string
+    ret
+
   # Internal: Deindents excess whitespace from the sections.
   #
   # lines - An {Array} of {String}s

@@ -1,7 +1,10 @@
 _ = require 'underscore'
 marked = require 'marked'
 Doc = require './doc'
-{getLinkMatch} = require './utils'
+{getLinkMatch, multiplyString} = require './utils'
+
+SpecialHeadingDepth = 2
+SpecialHeadings = ['Arguments', 'Events', 'Examples']
 
 # Public: Parses a docString
 #
@@ -11,37 +14,160 @@ Doc = require './doc'
 parse = (docString) ->
   lexer = new marked.Lexer()
   tokens = lexer.lex(docString)
+  firstToken = _.first(tokens)
+
+  unless firstToken and firstToken.type == 'paragraph'
+    throw new Error 'Doc string must start with a paragraph!'
+
   doc = new Doc(docString)
 
   _.extend doc, parseSummaryAndDescription(tokens)
-  _.extend doc, parseArguments(tokens)
+
+  section = parseArgumentsSection(tokens)
+  doc.addSection(section) if section?
 
   doc
 
 parseSummaryAndDescription = (tokens) ->
   visibility = 'Private'
-  summary = ''
-  description = []
-
-  while tokens.length and tokens[0].type == 'paragraph'
-    token = tokens.shift()
-    if summary
-      description.push(token.text)
-    else
-      summary = token.text
+  summary = tokens.shift().text
+  description = generateDescription(tokens)
 
   if summary
     if visibilityMatch = /^\s*([a-zA-Z]+):\s*/.exec(summary)
       visibility = visibilityMatch[1]
       summary = summary.replace(visibilityMatch[0], '')
 
-  description.unshift(summary)
-  description = description.join('\n\n')
+  description = if description then "#{summary}\n\n#{description}" else summary
 
   {description, summary, visibility}
 
-parseArguments = (tokens) ->
-  argumentTypes = [
+parseArgumentsSection = (tokens) ->
+  firstToken = _.first(tokens)
+  if firstToken and firstToken.type in ['list_start', 'heading']
+    return if firstToken.type == 'heading' and not (firstToken.text is 'Arguments' and firstToken.depth is 2)
+  else
+    return
+
+  section =
+    type: 'arguments'
+    description: ''
+
+  if firstToken.type == 'list_start'
+    section.arguments = parseArgumentList(tokens)
+  # else
+  #   tokens.shift()
+
+  section
+
+parseExamples = (tokens, doc) ->
+
+parseEvents = (tokens, doc) ->
+
+generateDescription = (tokens) ->
+  description = []
+  while token = _.first(tokens)
+    if token.type in ['paragraph', 'text']
+      description.push generateParagraph(tokens)
+
+    else if token.type is 'blockquote_start'
+      description.push generateBlockquote(tokens)
+
+    else if token.type is 'code'
+      description.push generateCode(tokens)
+
+    else if token.type is 'heading'
+      if token.depth == SpecialHeadingDepth and token.text in SpecialHeadings
+        break
+      else
+        description.push generateHeading(tokens)
+
+    else if token.type is 'list_start'
+      listToken = null
+      for listToken in tokens
+        break if listToken.type == 'text'
+
+      # Check if list is an arguments list. If it starts with `someVar`, it is.
+      if listToken? and /^\s*`([\w\.-]+)`/.test(listToken.text)
+        break
+      else
+        description.push generateList(tokens)
+
+    else break
+
+  description.join '\n\n'
+
+generateParagraph = (tokens) ->
+  tokens.shift().text
+
+generateHeading = (tokens) ->
+  token = tokens.shift()
+  "#{multiplyString('#', token.depth)} #{token.text}"
+
+generateBlockquote = (tokens) ->
+  lines = []
+
+  while token = tokens.shift()
+    break if token.type is 'blockquote_end'
+    if token.text?
+      for line in token.text.split('\n')
+        lines.push "> #{line}"
+
+  lines.join '\n'
+
+generateCode = (tokens) ->
+  token = tokens.shift()
+  lines = []
+  lines.push if token.lang? then "```#{token.lang}" else '```'
+  lines.push token.text
+  lines.push '```'
+  lines.join '\n'
+
+generateList = (tokens) ->
+  depth = -1
+  lines = []
+  linePrefix = null
+
+  ordered = null
+  orderedStack = []
+
+  indent = ->
+    multiplyString('  ', depth)
+
+  while token = _.first(tokens)
+    switch token.type
+      when 'list_start'
+        depth++
+        orderedStack.push ordered
+        ordered = token.ordered
+
+      when 'list_item_start', 'loose_item_start'
+        linePrefix = if ordered then "#{indent()}1. " else "#{indent()}* "
+
+      when 'text', 'code', 'blockquote_start'
+        if token.type == 'code'
+          textLines = generateCode(tokens).split('\n')
+        else if token.type == 'blockquote_start'
+          textLines = generateBlockquote(tokens).split('\n')
+        else
+          textLines = token.text.split('\n')
+
+        for line in textLines
+          prefix = linePrefix ? "#{indent()}  "
+          lines.push prefix + line
+          linePrefix = null # we used the bullet!
+
+      when 'list_end'
+        depth--
+        ordered = orderedStack.pop()
+
+    token = tokens.shift()
+    break if depth < 0
+
+  lines.join '\n'
+
+parseArgumentList = (tokens) ->
+  ArgumentListTokenTypes = [
     'list_start',
     'list_item_start', 'loose_item_start',
     'text', 'space'
@@ -54,7 +180,7 @@ parseArguments = (tokens) ->
   argumentsListStack = []
   argument = null
   argumentStack = []
-  while tokens.length and tokens[0].type in argumentTypes
+  while tokens.length and tokens[0].type in ArgumentListTokenTypes
     token = tokens.shift()
     switch token.type
       when 'list_start'
@@ -70,7 +196,7 @@ parseArguments = (tokens) ->
         argument.text.push token.text
 
       when 'list_item_end', 'loose_item_end'
-        _.extend argument, parseArgument(argument.text.join(' '))
+        _.extend argument, parseListItem(argument.text.join(' '))
         argumentsList.push argument
         delete argument.text
 
@@ -85,9 +211,9 @@ parseArguments = (tokens) ->
         else
           args = argumentsList
 
-  {arguments: args}
+  args
 
-parseArgument = (argumentString) ->
+parseListItem = (argumentString) ->
   name = null
   type = null
   description = argumentString
@@ -98,9 +224,5 @@ parseArgument = (argumentString) ->
     type = getLinkMatch(description)
 
   {name, description, type}
-
-parseExamples = (tokens, doc) ->
-
-parseEvents = (tokens, doc) ->
 
 module.exports = {parse}

@@ -2,6 +2,7 @@ module.exports =
 class Doc
   constructor: (@originalText) ->
     @visibility = 'Private'
+    @sections = []
 
   isPublic: ->
     /public|essential|extended/i.test(@visibility)
@@ -12,14 +13,18 @@ class Doc
   isPrivate: ->
     not @isPublic() and not @isInternal()
 
+  addSection: (section) ->
+    @sections.push section
+
   toJSON: ->
     {
       @visibility
       @summary
       @description
-      @arguments
-      @examples
-      @events
+      @sections
+      # @arguments
+      # @examples
+      # @events
       @delegation
       @returnValues
     }
