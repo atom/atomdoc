@@ -2,6 +2,10 @@
 
 Parse atomdoc with JavaScript / CoffeeScript.
 
+## REALLY EXPERIMENTAL
+
+Like really really experimental. __Do not use__ for now. The doc format and output will change without warning! This project might go away altogether.
+
 ## Usage
 
 It's on [npm](https://www.npmjs.org/package/atomdoc)
