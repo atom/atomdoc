@@ -171,12 +171,12 @@ parseArgumentList = (tokens) ->
     token = tokens.shift()
     switch token.type
       when 'list_start'
+        argumentsListStack.push argumentsList if argumentsList?
         argumentsList = []
-        argumentsListStack.push argumentsList
 
       when 'list_item_start', 'loose_item_start'
+        argumentStack.push argument if argument?
         argument = {}
-        argumentStack.push argument
 
       when 'text'
         argument.text ?= []
@@ -187,14 +187,12 @@ parseArgumentList = (tokens) ->
         argumentsList.push argument
         delete argument.text
 
-        argumentStack.pop()
-        argument = _.last argumentStack
+        argument = argumentStack.pop()
 
       when 'list_end'
         if argument?
           argument.arguments = argumentsList
-          argumentsListStack.pop()
-          argumentsList = _.last argumentsListStack
+          argumentsList = argumentsListStack.pop()
         else
           args = argumentsList
 
