@@ -42,7 +42,7 @@ docString = """
   ```coffee
   myMethod 20, ({someOption, anotherOption}) ->
     console.log someOption, anotherOption
-  `` `
+  ```
 
   Returns a {Bool}; true when it does the thing
 """
