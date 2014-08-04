@@ -7,6 +7,7 @@ SpecialHeadingDepth = 2
 SpecialHeadings = ['Arguments', 'Events', 'Examples']
 
 ReturnsRegex = '^\\s*Returns'
+ArgumentListItemRegex = '^\\s*`([\\w\\.-]+)`(\\s*[:-])?\\s*'
 
 ###
 Section: Parsing
@@ -203,7 +204,7 @@ parseListItem = (argumentString) ->
   type = null
   description = argumentString
 
-  if nameMatches = /^\s*`([\w\.-]+)`(\s*[:-])?\s*/.exec(argumentString)
+  if nameMatches = new RegExp(ArgumentListItemRegex).exec(argumentString)
     name = nameMatches[1]
     description = description.replace(nameMatches[0], '')
     type = getLinkMatch(description)
@@ -233,7 +234,7 @@ stopOnSectionBoundaries = (token, tokens) ->
       break if listToken.type == 'text'
 
     # Check if list is an arguments list. If it starts with `someVar`, it is.
-    return false if listToken? and /^\s*`([\w\.-]+)`/.test(listToken.text)
+    return false if listToken? and new RegExp(ArgumentListItemRegex).test(listToken.text)
 
 # Will read / consume tokens down to a special section (args, events, examples)
 generateDescription = (tokens, tokenCallback) ->
