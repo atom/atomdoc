@@ -259,6 +259,31 @@ describe "parser", ->
 
       expect(doc.sections[0].arguments[0].name).toEqual 'oneTWO3.4-5_6'
 
+    it "parses arguments with code blocks", ->
+      str = """
+        Public: Batch multiple operations as a single undo/redo step.
+
+        * `options` {Object} options hash
+          ```js
+          a = 1
+          ```
+        * `something` {Object} something
+      """
+      doc = parse(str)
+
+      expect(doc.sections[0]).toEqual
+        type: 'arguments'
+        description: ''
+        arguments: [{
+          name: 'options'
+          description: "{Object} options hash \n```js\na = 1\n```"
+          type: 'Object'
+        }, {
+          name: 'something'
+          description: "{Object} something"
+          type: 'Object'
+        }]
+
     it "handles nested arguments", ->
       str = """
         Public: Batch multiple operations as a single undo/redo step.

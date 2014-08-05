@@ -155,47 +155,55 @@ parseReturnValues = (tokens) ->
 # * `something` A {Bool}
 #   * `somethingNested` A nested object
 parseArgumentList = (tokens) ->
-  ArgumentListTokenTypes = [
-    'list_start',
-    'list_item_start', 'loose_item_start',
-    'text', 'space'
-    'loose_item_end', 'list_item_end'
-    'list_end'
-  ]
-
+  depth = 0
   args = []
   argumentsList = null
   argumentsListStack = []
   argument = null
   argumentStack = []
-  while tokens.length and tokens[0].type in ArgumentListTokenTypes
-    token = tokens.shift()
+
+  while tokens.length and (tokens[0].type is 'list_start' or depth)
+    token = tokens[0]
     switch token.type
       when 'list_start'
+        depth++
         argumentsListStack.push argumentsList if argumentsList?
         argumentsList = []
+        tokens.shift()
 
       when 'list_item_start', 'loose_item_start'
         argumentStack.push argument if argument?
         argument = {}
+        tokens.shift()
+
+      when 'code'
+        argument.text ?= []
+        argument.text.push '\n' + generateCode(tokens)
 
       when 'text'
         argument.text ?= []
         argument.text.push token.text
+        tokens.shift()
 
       when 'list_item_end', 'loose_item_end'
-        _.extend argument, parseListItem(argument.text.join(' '))
-        argumentsList.push argument
-        delete argument.text
+        if argument?
+          _.extend argument, parseListItem(argument.text.join(' '))
+          argumentsList.push argument
+          delete argument.text
 
         argument = argumentStack.pop()
+        tokens.shift()
 
       when 'list_end'
+        depth--
         if argument?
           argument.arguments = argumentsList
           argumentsList = argumentsListStack.pop()
         else
           args = argumentsList
+        tokens.shift()
+
+      else tokens.shift()
 
   args
 
