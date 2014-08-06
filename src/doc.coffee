@@ -14,7 +14,9 @@ class Doc
     not @isPublic() and not @isInternal()
 
   addSection: (section) ->
-    @sections.push section
+    return unless section?
+    this[section.type] = section
+    delete section.type
 
   setReturnValues: (returnValues) ->
     if @returnValues?

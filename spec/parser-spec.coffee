@@ -196,10 +196,9 @@ describe "parser", ->
 
           Rainbows
         """
-        expect(doc.sections[0]).toEqual
-          type: 'arguments'
+        expect(doc.arguments).toEqual
           description: ''
-          arguments: [
+          list: [
             name: 'fn'
             description: 'A {Function} to call inside the transaction.'
             type: 'Function'
@@ -240,10 +239,9 @@ describe "parser", ->
       """
       doc = parse(str)
 
-      expect(doc.sections[0]).toEqual
-        type: 'arguments'
+      expect(doc.arguments).toEqual
         description: ''
-        arguments: [
+        list: [
           name: 'fn'
           description: 'A {Function} to call inside the transaction.'
           type: 'Function'
@@ -257,7 +255,7 @@ describe "parser", ->
       """
       doc = parse(str)
 
-      expect(doc.sections[0].arguments[0].name).toEqual 'oneTWO3.4-5_6'
+      expect(doc.arguments.list[0].name).toEqual 'oneTWO3.4-5_6'
 
     it "parses arguments with code blocks", ->
       str = """
@@ -271,10 +269,9 @@ describe "parser", ->
       """
       doc = parse(str)
 
-      expect(doc.sections[0]).toEqual
-        type: 'arguments'
+      expect(doc.arguments).toEqual
         description: ''
-        arguments: [{
+        list: [{
           name: 'options'
           description: "{Object} options hash \n```js\na = 1\n```"
           type: 'Object'
@@ -297,14 +294,13 @@ describe "parser", ->
       """
       doc = parse(str)
 
-      expect(doc.sections[0]).toEqual
-        type: 'arguments'
+      expect(doc.arguments).toEqual
         description: ''
-        arguments: [{
+        list: [{
           name: '1'
           description: 'one'
           type: null
-          arguments:[{
+          children: [{
             name: '1.1'
             description: 'two'
             type: null
@@ -312,7 +308,7 @@ describe "parser", ->
             name: '1.2'
             description: 'three'
             type: null
-            arguments: [{
+            children: [{
               name: '1.2.1'
               description: 'four'
               type: null
@@ -338,10 +334,9 @@ describe "parser", ->
           * `something` A {Bool}
         """
         doc = parse(str)
-        expect(doc.sections[0]).toEqual
-          type: 'arguments'
+        expect(doc.arguments).toEqual
           description: ''
-          arguments: [
+          list: [
             name: 'something'
             description: 'A {Bool}'
             type: 'Bool'
@@ -358,10 +353,9 @@ describe "parser", ->
           * `something` A {Bool}
         """
         doc = parse(str)
-        expect(doc.sections[0]).toEqual
-          type: 'arguments'
+        expect(doc.arguments).toEqual
           description: 'Some description'
-          arguments: [
+          list: [
             name: 'something'
             description: 'A {Bool}'
             type: 'Bool'
@@ -380,14 +374,13 @@ describe "parser", ->
           * `options` options hash
       """
       doc = parse(str)
-      expect(doc.sections[1]).toEqual
-        type: 'events'
+      expect(doc.events).toEqual
         description: ''
-        events: [
+        list: [
           name: 'contents-modified'
           description: 'Fired when this thing happens.'
           type: null
-          arguments: [
+          children: [
             name: 'options'
             description: 'options hash'
             type: null
@@ -412,14 +405,13 @@ describe "parser", ->
           * `options` options hash
       """
       doc = parse(str)
-      expect(doc.sections[1]).toEqual
-        type: 'events'
+      expect(doc.events).toEqual
         description: 'Events do this and that and this too.'
-        events: [
+        list: [
           name: 'contents-modified'
           description: 'Fired when this thing happens.'
           type: null
-          arguments: [
+          children: [
             name: 'options'
             description: 'options hash'
             type: null
@@ -448,9 +440,8 @@ describe "parser", ->
         ```
       """
       doc = parse(str)
-      expect(doc.sections[1]).toEqual
-        type: 'examples'
-        examples: [{
+      expect(doc.examples).toEqual
+        list: [{
           description: 'This is example one'
           code: 'ok = 1'
           lang: 'coffee'
@@ -487,9 +478,8 @@ describe "parser", ->
         ```
       """
       doc = parse(str)
-      expect(doc.sections[1]).toEqual
-        type: 'examples'
-        examples: [{
+      expect(doc.examples).toEqual
+        list: [{
           description: ''
           code: 'ok = 1'
           lang: 'coffee'
@@ -518,7 +508,7 @@ describe "parser", ->
         ## Examples
       """
       doc = parse(str)
-      expect(doc.sections[1]).not.toBeDefined()
+      expect(doc.examples).not.toBeDefined()
 
   describe 'parsing returns', ->
     it "parses returns when there are arguments", ->
@@ -531,10 +521,9 @@ describe "parser", ->
       """
       doc = parse(str)
 
-      expect(doc.sections[0]).toEqual
-        type: 'arguments'
+      expect(doc.arguments).toEqual
         description: ''
-        arguments: [
+        list: [
           name: 'fn'
           description: 'A {Function} to call inside the transaction.'
           type: 'Function'

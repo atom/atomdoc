@@ -75,11 +75,11 @@ parseArgumentsSection = (tokens) ->
     description: ''
 
   if firstToken.type == 'list_start'
-    section.arguments = parseArgumentList(tokens)
+    section.list = parseArgumentList(tokens)
   else
     tokens.shift() # consume the header
     section.description = generateDescription(tokens, stopOnSectionBoundaries)
-    section.arguments = parseArgumentList(tokens)
+    section.list = parseArgumentList(tokens)
 
   section
 
@@ -93,7 +93,7 @@ parseEventsSection = (tokens) ->
 
   tokens.shift() # consume the header
   section.description = generateDescription(tokens, stopOnSectionBoundaries)
-  section.events = parseArgumentList(tokens)
+  section.list = parseArgumentList(tokens)
 
   section
 
@@ -103,7 +103,7 @@ parseExamplesSection = (tokens) ->
 
   section =
     type: 'examples'
-    examples: []
+    list: []
 
   tokens.shift() # consume the header
 
@@ -119,11 +119,11 @@ parseExamplesSection = (tokens) ->
         lang: firstToken.lang
         code: firstToken.text
         raw: generateCode(tokens)
-      section.examples.push example
+      section.list.push example
     else
       break
 
-  section if section.examples.length
+  section if section.list.length
 
 parseReturnValues = (tokens) ->
   firstToken = _.first(tokens)
@@ -197,7 +197,7 @@ parseArgumentList = (tokens) ->
       when 'list_end'
         depth--
         if argument?
-          argument.arguments = argumentsList
+          argument.children = argumentsList
           argumentsList = argumentsListStack.pop()
         else
           args = argumentsList
