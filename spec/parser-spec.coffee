@@ -440,26 +440,25 @@ describe "parser", ->
         ```
       """
       doc = parse(str)
-      expect(doc.examples).toEqual
-        list: [{
-          description: 'This is example one'
-          code: 'ok = 1'
-          lang: 'coffee'
-          raw: """
-          ```coffee
-          ok = 1
-          ```
-          """
-        },{
-          description: 'This is example two'
-          code: 'ok = 2'
-          lang: 'coffee'
-          raw: """
-          ```coffee
-          ok = 2
-          ```
-          """
-        }]
+      expect(doc.examples).toEqual [{
+        description: 'This is example one'
+        code: 'ok = 1'
+        lang: 'coffee'
+        raw: """
+        ```coffee
+        ok = 1
+        ```
+        """
+      },{
+        description: 'This is example two'
+        code: 'ok = 2'
+        lang: 'coffee'
+        raw: """
+        ```coffee
+        ok = 2
+        ```
+        """
+      }]
 
     it "parses Examples without a description", ->
       str = """
@@ -478,26 +477,25 @@ describe "parser", ->
         ```
       """
       doc = parse(str)
-      expect(doc.examples).toEqual
-        list: [{
-          description: ''
-          code: 'ok = 1'
-          lang: 'coffee'
-          raw: """
-          ```coffee
-          ok = 1
-          ```
-          """
-        },{
-          description: ''
-          code: 'ok = 2'
-          lang: 'coffee'
-          raw: """
-          ```coffee
-          ok = 2
-          ```
-          """
-        }]
+      expect(doc.examples).toEqual [{
+        description: ''
+        code: 'ok = 1'
+        lang: 'coffee'
+        raw: """
+        ```coffee
+        ok = 1
+        ```
+        """
+      },{
+        description: ''
+        code: 'ok = 2'
+        lang: 'coffee'
+        raw: """
+        ```coffee
+        ok = 2
+        ```
+        """
+      }]
 
     it "ignores examples when no examples specified", ->
       str = """

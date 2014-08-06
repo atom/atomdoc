@@ -33,19 +33,16 @@ parse = (docString) ->
   _.extend doc, parseSummaryAndDescription(tokens)
 
   while tokens.length
-    section = null
-    section ?= parseArgumentsSection(tokens)
-    section ?= parseEventsSection(tokens)
-    section ?= parseExamplesSection(tokens)
-
-    if section?
-      doc.addSection(section)
+    if args = parseArgumentsSection(tokens)
+      doc.arguments = args
+    else if events = parseEventsSection(tokens)
+      doc.events = events
+    else if examples = parseExamplesSection(tokens)
+      doc.examples = examples
+    else if returnValues = parseReturnValues(tokens)
+      doc.setReturnValues(returnValues)
     else
-      returnValues = parseReturnValues(tokens)
-      if returnValues?
-        doc.setReturnValues(returnValues)
-      else
-        tokens.shift()
+      tokens.shift()
 
   doc
 
@@ -71,7 +68,6 @@ parseArgumentsSection = (tokens) ->
     return
 
   section =
-    type: 'arguments'
     description: ''
 
   if firstToken.type == 'list_start'
@@ -88,7 +84,6 @@ parseEventsSection = (tokens) ->
   return unless firstToken and firstToken.type == 'heading' and firstToken.text is 'Events' and firstToken.depth is SpecialHeadingDepth
 
   section =
-    type: 'events'
     description: ''
 
   tokens.shift() # consume the header
@@ -101,10 +96,7 @@ parseExamplesSection = (tokens) ->
   firstToken = _.first(tokens)
   return unless firstToken and firstToken.type == 'heading' and firstToken.text is 'Examples' and firstToken.depth is SpecialHeadingDepth
 
-  section =
-    type: 'examples'
-    list: []
-
+  examples = []
   tokens.shift() # consume the header
 
   while tokens.length
@@ -119,11 +111,11 @@ parseExamplesSection = (tokens) ->
         lang: firstToken.lang
         code: firstToken.text
         raw: generateCode(tokens)
-      section.list.push example
+      examples.push example
     else
       break
 
-  section if section.list.length
+  examples if examples.length
 
 parseReturnValues = (tokens) ->
   firstToken = _.first(tokens)

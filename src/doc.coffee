@@ -13,11 +13,6 @@ class Doc
   isPrivate: ->
     not @isPublic() and not @isInternal()
 
-  addSection: (section) ->
-    return unless section?
-    this[section.type] = section
-    delete section.type
-
   setReturnValues: (returnValues) ->
     if @returnValues?
       @returnValues = @returnValues.concat returnValues
