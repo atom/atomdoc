@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "jasmine-focused": "1.x",
+    "jasmine-json": "~0.0",
     "grunt-contrib-coffee": "~0.7.0",
     "grunt-cli": "~0.1.8",
     "grunt": "~0.4.1",

@@ -1,3 +1,4 @@
+require 'jasmine-json'
 {parse} = require '../src/parser'
 
 describe "parser", ->
@@ -519,7 +520,7 @@ describe "parser", ->
       """
       doc = parse(str)
 
-      expect(doc.arguments).toEqual
+      expect(doc.arguments).toEqualJson
         description: ''
         list: [
           name: 'fn'
@@ -527,7 +528,7 @@ describe "parser", ->
           type: 'Function'
         ]
 
-      expect(doc.returnValues).toEqual [{
+      expect(doc.returnValues).toEqualJson [{
         type: 'Bool'
         description: 'Returns a {Bool}'
       }]
@@ -542,12 +543,25 @@ describe "parser", ->
       """
       doc = parse(str)
 
-      expect(doc.returnValues).toEqual [{
+      expect(doc.returnValues).toEqualJson [{
         type: 'Bool'
         description: 'Returns a {Bool} when X happens'
       },{
         type: 'Function'
         description: 'Returns a {Function} when something else happens'
+      }]
+
+    it 'parses returns when there is no description', ->
+      str = """
+        Public: Returns {Bool} true when Y happens
+      """
+      doc = parse(str)
+
+      expect(doc.summary).toEqual ''
+      expect(doc.description).toEqual ''
+      expect(doc.returnValues).toEqualJson [{
+        type: 'Bool'
+        description: 'Returns {Bool} true when Y happens'
       }]
 
     it "parses returns when they break paragraphs", ->

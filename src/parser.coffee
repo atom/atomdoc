@@ -6,7 +6,8 @@ Doc = require './doc'
 SpecialHeadingDepth = 2
 SpecialHeadings = ['Arguments', 'Events', 'Examples']
 
-ReturnsRegex = '^\\s*Returns'
+VisibilityRegex = '^\\s*([a-zA-Z]+):\\s*'
+ReturnsRegex = "(#{VisibilityRegex})?\\s*Returns"
 ArgumentListItemRegex = '^\\s*`([\\w\\.-]+)`(\\s*[:-])?\\s*'
 
 ###
@@ -47,18 +48,26 @@ parse = (docString) ->
   doc
 
 parseSummaryAndDescription = (tokens) ->
+  summary = ''
+  description = ''
   visibility = 'Private'
-  summary = tokens.shift().text
-  description = generateDescription(tokens, stopOnSectionBoundaries)
 
-  if summary
-    if visibilityMatch = /^\s*([a-zA-Z]+):\s*/.exec(summary)
+  rawVisibility = null
+  rawSummary = tokens[0].text
+  if rawSummary
+    if visibilityMatch = new RegExp(VisibilityRegex).exec(rawSummary)
       visibility = visibilityMatch[1]
-      summary = summary.replace(visibilityMatch[0], '')
+      rawVisibility = visibilityMatch[0]
+      rawSummary = rawSummary.replace(rawVisibility, '')
 
-  description = if description then "#{summary}\n\n#{description}" else summary
-
-  {description, summary, visibility}
+  if isReturnValue(rawSummary)
+    returnValues = parseReturnValues(tokens)
+    {summary, description, visibility, returnValues}
+  else
+    summary = rawSummary
+    description = generateDescription(tokens, stopOnSectionBoundaries)
+    description = description.replace(rawVisibility, '') if rawVisibility?
+    {description, summary, visibility}
 
 parseArgumentsSection = (tokens) ->
   firstToken = _.first(tokens)
@@ -119,10 +128,11 @@ parseExamplesSection = (tokens) ->
 
 parseReturnValues = (tokens) ->
   firstToken = _.first(tokens)
-  return unless firstToken and firstToken.type in ['paragraph', 'text'] and new RegExp(ReturnsRegex).test(firstToken.text)
+  return unless firstToken and firstToken.type in ['paragraph', 'text'] and isReturnValue(firstToken.text)
 
   token = tokens.shift()
-  normalizedString = token.text.replace(/\n/g, ' ').replace(/\s{2,}/g, ' ')
+  returnsMatches = new RegExp(ReturnsRegex).exec(token.text) # there might be a `Public: ` in front of the return.
+  normalizedString = token.text.replace(returnsMatches[1], '').replace(/\n/g, ' ').replace(/\s{2,}/g, ' ')
 
   returnValues = null
 
@@ -221,9 +231,12 @@ These methods will consume tokens and return a markdown representation of the
 tokens. Yeah, it generates markdown from the lexed markdown tokens.
 ###
 
+isReturnValue = (string) ->
+  new RegExp(ReturnsRegex).test(string)
+
 stopOnSectionBoundaries = (token, tokens) ->
   if token.type in ['paragraph', 'text']
-    return false if new RegExp(ReturnsRegex).test(token.text)
+    return false if isReturnValue(token.text)
 
   else if token.type is 'heading'
     return false if token.depth == SpecialHeadingDepth and token.text in SpecialHeadings
