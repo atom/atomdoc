@@ -359,22 +359,29 @@ describe "parser", ->
 
         ## Events
 
-        * `contents-modified` Fired when this thing happens.
-          * `options` options hash
+        ### contents-modified
+
+        Fired when this thing happens.
+
+        * `options` options hash
+          * `anOption` true to do something
       """
       doc = parse(str)
-      expect(doc.events).toEqual
-        description: ''
-        list: [
-          name: 'contents-modified'
-          description: 'Fired when this thing happens.'
+      expect(doc.events).toEqual [
+        name: 'contents-modified'
+        summary: 'Fired when this thing happens.'
+        description: 'Fired when this thing happens.'
+        arguments: [
+          name: 'options'
+          description: 'options hash'
           type: null
           children: [
-            name: 'options'
-            description: 'options hash'
+            name: 'anOption'
+            description: 'true to do something'
             type: null
           ]
         ]
+      ]
 
     it "parses events with a description", ->
       str = """
@@ -390,22 +397,25 @@ describe "parser", ->
 
         Events do this and that and this too.
 
-        * `contents-modified` Fired when this thing happens.
-          * `options` options hash
+        ### contents-modified
+
+        Fired when this thing happens.
+
+        This is a body of the thing
+
+        * `options` options hash
       """
       doc = parse(str)
-      expect(doc.events).toEqual
-        description: 'Events do this and that and this too.'
-        list: [
-          name: 'contents-modified'
-          description: 'Fired when this thing happens.'
+      expect(doc.events).toEqual [
+        name: 'contents-modified'
+        summary: 'Fired when this thing happens.'
+        description: 'Fired when this thing happens.\n\nThis is a body of the thing'
+        arguments: [
+          name: 'options'
+          description: 'options hash'
           type: null
-          children: [
-            name: 'options'
-            description: 'options hash'
-            type: null
-          ]
         ]
+      ]
 
   describe 'examples section', ->
     it "parses Examples with a description", ->

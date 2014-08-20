@@ -91,14 +91,27 @@ parseEventsSection = (tokens) ->
   firstToken = _.first(tokens)
   return unless firstToken and firstToken.type == 'heading' and firstToken.text is 'Events' and firstToken.depth is SpecialHeadingDepth
 
-  section =
-    description: ''
+  events = []
 
   tokens.shift() # consume the header
-  section.description = generateDescription(tokens, stopOnSectionBoundaries)
-  section.list = parseArgumentList(tokens)
 
-  section
+  while tokens.length
+    # We consume until there is a heading of h3 which denotes the beginning of an event.
+    generateDescription tokens, (token, tokens) ->
+      return false if token.type is 'heading' and token.depth is SpecialHeadingDepth + 1
+      stopOnSectionBoundaries(token, tokens)
+
+    firstToken = _.first(tokens)
+    if firstToken.type is 'heading'
+      tokens.shift() # consume the header
+      {summary, description} = parseSummaryAndDescription(tokens)
+      name = firstToken.text
+      args = parseArgumentList(tokens)
+      events.push {name, summary, description, arguments: args}
+    else
+      break
+
+  events if events.length
 
 parseExamplesSection = (tokens) ->
   firstToken = _.first(tokens)
