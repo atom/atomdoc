@@ -197,13 +197,11 @@ describe "parser", ->
 
           Rainbows
         """
-        expect(doc.arguments).toEqual
-          description: ''
-          list: [
-            name: 'fn'
-            description: 'A {Function} to call inside the transaction.'
-            type: 'Function'
-          ]
+        expect(doc.arguments).toEqual [
+          name: 'fn'
+          description: 'A {Function} to call inside the transaction.'
+          type: 'Function'
+        ]
 
     describe "with different visibilities", ->
       it "parses a public visibility", ->
@@ -240,13 +238,11 @@ describe "parser", ->
       """
       doc = parse(str)
 
-      expect(doc.arguments).toEqual
-        description: ''
-        list: [
-          name: 'fn'
-          description: 'A {Function} to call inside the transaction.'
-          type: 'Function'
-        ]
+      expect(doc.arguments).toEqual [
+        name: 'fn'
+        description: 'A {Function} to call inside the transaction.'
+        type: 'Function'
+      ]
 
     it "parses names with all the accepted characters", ->
       str = """
@@ -256,7 +252,7 @@ describe "parser", ->
       """
       doc = parse(str)
 
-      expect(doc.arguments.list[0].name).toEqual 'oneTWO3.4-5_6'
+      expect(doc.arguments[0].name).toEqual 'oneTWO3.4-5_6'
 
     it "parses arguments with code blocks", ->
       str = """
@@ -270,17 +266,15 @@ describe "parser", ->
       """
       doc = parse(str)
 
-      expect(doc.arguments).toEqual
-        description: ''
-        list: [{
-          name: 'options'
-          description: "{Object} options hash \n```js\na = 1\n```"
-          type: 'Object'
-        }, {
-          name: 'something'
-          description: "{Object} something"
-          type: 'Object'
-        }]
+      expect(doc.arguments).toEqual [{
+        name: 'options'
+        description: "{Object} options hash \n```js\na = 1\n```"
+        type: 'Object'
+      }, {
+        name: 'something'
+        description: "{Object} something"
+        type: 'Object'
+      }]
 
     it "handles nested arguments", ->
       str = """
@@ -295,35 +289,33 @@ describe "parser", ->
       """
       doc = parse(str)
 
-      expect(doc.arguments).toEqual
-        description: ''
-        list: [{
-          name: '1'
-          description: 'one'
+      expect(doc.arguments).toEqual [{
+        name: '1'
+        description: 'one'
+        type: null
+        children: [{
+          name: '1.1'
+          description: 'two'
+          type: null
+        },{
+          name: '1.2'
+          description: 'three'
           type: null
           children: [{
-            name: '1.1'
-            description: 'two'
-            type: null
-          },{
-            name: '1.2'
-            description: 'three'
-            type: null
-            children: [{
-              name: '1.2.1'
-              description: 'four'
-              type: null
-            }]
-          },{
-            name: '1.3'
-            description: 'five'
+            name: '1.2.1'
+            description: 'four'
             type: null
           }]
         },{
-          name: '2'
-          description: 'six'
+          name: '1.3'
+          description: 'five'
           type: null
         }]
+      },{
+        name: '2'
+        description: 'six'
+        type: null
+      }]
 
     describe 'when there is an "Arguments" header', ->
       it "parses arguments without a description", ->
@@ -335,32 +327,28 @@ describe "parser", ->
           * `something` A {Bool}
         """
         doc = parse(str)
-        expect(doc.arguments).toEqual
-          description: ''
-          list: [
-            name: 'something'
-            description: 'A {Bool}'
-            type: 'Bool'
-          ]
+        expect(doc.arguments).toEqual [
+          name: 'something'
+          description: 'A {Bool}'
+          type: 'Bool'
+        ]
 
-      it "parses arguments with a description", ->
+      it "parses arguments with a description by ignoring the description", ->
         str = """
           Public: Batch multiple operations as a single undo/redo step.
 
           ## Arguments
 
-          Some description
+          This should be ignored
 
           * `something` A {Bool}
         """
         doc = parse(str)
-        expect(doc.arguments).toEqual
-          description: 'Some description'
-          list: [
-            name: 'something'
-            description: 'A {Bool}'
-            type: 'Bool'
-          ]
+        expect(doc.arguments).toEqual [
+          name: 'something'
+          description: 'A {Bool}'
+          type: 'Bool'
+        ]
 
   describe 'events section', ->
     it "parses events without a description", ->
@@ -520,13 +508,11 @@ describe "parser", ->
       """
       doc = parse(str)
 
-      expect(doc.arguments).toEqualJson
-        description: ''
-        list: [
-          name: 'fn'
-          description: 'A {Function} to call inside the transaction.'
-          type: 'Function'
-        ]
+      expect(doc.arguments).toEqualJson [
+        name: 'fn'
+        description: 'A {Function} to call inside the transaction.'
+        type: 'Function'
+      ]
 
       expect(doc.returnValues).toEqualJson [{
         type: 'Bool'

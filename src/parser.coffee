@@ -76,17 +76,16 @@ parseArgumentsSection = (tokens) ->
   else
     return
 
-  section =
-    description: ''
+  args = null
 
   if firstToken.type == 'list_start'
-    section.list = parseArgumentList(tokens)
+    args = parseArgumentList(tokens)
   else
     tokens.shift() # consume the header
-    section.description = generateDescription(tokens, stopOnSectionBoundaries)
-    section.list = parseArgumentList(tokens)
+    generateDescription(tokens, stopOnSectionBoundaries) # consume any BS before the args list
+    args = parseArgumentList(tokens)
 
-  section
+  args
 
 parseEventsSection = (tokens) ->
   firstToken = _.first(tokens)
