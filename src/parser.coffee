@@ -102,7 +102,7 @@ parseEventsSection = (tokens) ->
       stopOnSectionBoundaries(token, tokens)
 
     firstToken = _.first(tokens)
-    if firstToken.type is 'heading'
+    if firstToken?.type is 'heading'
       tokens.shift() # consume the header
       {summary, description} = parseSummaryAndDescription(tokens)
       name = firstToken.text

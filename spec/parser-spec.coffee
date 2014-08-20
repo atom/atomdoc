@@ -417,6 +417,28 @@ describe "parser", ->
         ]
       ]
 
+    it "doesnt die when events section is messed up", ->
+      str = """
+        Public: Batch multiple operations as a single undo/redo step.
+
+        ## Events
+
+        * `options` options hash
+      """
+      doc = parse(str)
+      expect(doc.events).toEqual null
+
+    it "doesnt die when events section is messed up", ->
+      str = """
+        Public: Batch multiple operations as a single undo/redo step.
+
+        ## Events
+
+        * `options` options hash
+      """
+      doc = parse(str)
+      expect(doc.events).toEqual null
+
   describe 'examples section', ->
     it "parses Examples with a description", ->
       str = """
