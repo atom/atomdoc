@@ -351,7 +351,7 @@ describe "parser", ->
         ]
 
   describe 'events section', ->
-    it "parses events without a description", ->
+    it "parses events with nested arguments", ->
       str = """
         Public: Batch multiple operations as a single undo/redo step.
 
@@ -361,16 +361,17 @@ describe "parser", ->
 
         ### contents-modified
 
-        Fired when this thing happens.
+        Essential: Fired when this thing happens.
 
         * `options` options hash
           * `anOption` true to do something
       """
       doc = parse(str)
-      expect(doc.events).toEqual [
+      expect(doc.events).toEqualJson [
         name: 'contents-modified'
         summary: 'Fired when this thing happens.'
         description: 'Fired when this thing happens.'
+        visibility: 'Essential'
         arguments: [
           name: 'options'
           description: 'options hash'
@@ -399,17 +400,18 @@ describe "parser", ->
 
         ### contents-modified
 
-        Fired when this thing happens.
+        Public: Fired when this thing happens.
 
         This is a body of the thing
 
         * `options` options hash
       """
       doc = parse(str)
-      expect(doc.events).toEqual [
+      expect(doc.events).toEqualJson [
         name: 'contents-modified'
         summary: 'Fired when this thing happens.'
         description: 'Fired when this thing happens.\n\nThis is a body of the thing'
+        visibility: 'Public'
         arguments: [
           name: 'options'
           description: 'options hash'
@@ -417,27 +419,49 @@ describe "parser", ->
         ]
       ]
 
-    it "doesnt die when events section is messed up", ->
-      str = """
-        Public: Batch multiple operations as a single undo/redo step.
+    describe 'when there are no options specified', ->
+      it "parses multiple events with no options", ->
+        str = """
+          Public: Batch multiple operations as a single undo/redo step.
 
-        ## Events
+          ## Events
 
-        * `options` options hash
-      """
-      doc = parse(str)
-      expect(doc.events).toEqual null
+          ### contents-modified
 
-    it "doesnt die when events section is messed up", ->
-      str = """
-        Public: Batch multiple operations as a single undo/redo step.
+          Public: Fired when this thing happens.
 
-        ## Events
+          This is a body of the thing
 
-        * `options` options hash
-      """
-      doc = parse(str)
-      expect(doc.events).toEqual null
+          ### another-event
+
+          Public: Another
+        """
+        doc = parse(str)
+        expect(doc.events).toEqualJson [{
+          name: 'contents-modified'
+          summary: 'Fired when this thing happens.'
+          description: 'Fired when this thing happens.\n\nThis is a body of the thing'
+          visibility: 'Public'
+          arguments: null
+        }, {
+          name: 'another-event'
+          summary: 'Another'
+          description: 'Another'
+          visibility: 'Public'
+          arguments: null
+        }]
+
+    describe 'when there should be no output', ->
+      it "doesnt die when events section is messed up", ->
+        str = """
+          Public: Batch multiple operations as a single undo/redo step.
+
+          ## Events
+
+          * `options` options hash
+        """
+        doc = parse(str)
+        expect(doc.events).toEqual null
 
   describe 'examples section', ->
     it "parses Examples with a description", ->

@@ -47,7 +47,7 @@ parse = (docString) ->
 
   doc
 
-parseSummaryAndDescription = (tokens) ->
+parseSummaryAndDescription = (tokens, tokenCallback=stopOnSectionBoundaries) ->
   summary = ''
   description = ''
   visibility = 'Private'
@@ -65,7 +65,7 @@ parseSummaryAndDescription = (tokens) ->
     {summary, description, visibility, returnValues}
   else
     summary = rawSummary
-    description = generateDescription(tokens, stopOnSectionBoundaries)
+    description = generateDescription(tokens, tokenCallback)
     description = description.replace(rawVisibility, '') if rawVisibility?
     {description, summary, visibility}
 
@@ -91,23 +91,26 @@ parseEventsSection = (tokens) ->
   firstToken = _.first(tokens)
   return unless firstToken and firstToken.type == 'heading' and firstToken.text is 'Events' and firstToken.depth is SpecialHeadingDepth
 
-  events = []
+  # We consume until there is a heading of h3 which denotes the beginning of an event.
+  stopTokenCallback = (token, tokens) ->
+    return false if token.type is 'heading' and token.depth is SpecialHeadingDepth + 1
+    stopOnSectionBoundaries(token, tokens)
 
+  events = []
   tokens.shift() # consume the header
 
   while tokens.length
     # We consume until there is a heading of h3 which denotes the beginning of an event.
-    generateDescription tokens, (token, tokens) ->
-      return false if token.type is 'heading' and token.depth is SpecialHeadingDepth + 1
-      stopOnSectionBoundaries(token, tokens)
+    generateDescription(tokens, stopTokenCallback)
 
     firstToken = _.first(tokens)
     if firstToken?.type is 'heading'
       tokens.shift() # consume the header
-      {summary, description} = parseSummaryAndDescription(tokens)
+      {summary, description, visibility} = parseSummaryAndDescription(tokens, stopTokenCallback)
       name = firstToken.text
       args = parseArgumentList(tokens)
-      events.push {name, summary, description, arguments: args}
+      args = null if args.length is 0
+      events.push {name, summary, description, visibility, arguments: args}
     else
       break
 
