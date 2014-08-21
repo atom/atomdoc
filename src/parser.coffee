@@ -8,7 +8,7 @@ SpecialHeadings = ['Arguments', 'Events', 'Examples']
 
 VisibilityRegex = '^\\s*([a-zA-Z]+):\\s*'
 ReturnsRegex = "(#{VisibilityRegex})?\\s*Returns"
-ArgumentListItemRegex = '^\\s*`([\\w\\.-]+)`(\\s*[:-])?\\s*'
+ArgumentListItemRegex = '^\\s*`([\\w\\.-]+)`(\\s*[:-])?(\\s*\\(optional\\))?\\s*'
 
 ###
 Section: Parsing
@@ -233,8 +233,9 @@ parseListItem = (argumentString) ->
     name = nameMatches[1]
     description = description.replace(nameMatches[0], '')
     type = getLinkMatch(description)
+    isOptional = !!nameMatches[3]
 
-  {name, description, type}
+  {name, description, type, isOptional}
 
 module.exports = {parse}
 

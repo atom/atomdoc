@@ -197,10 +197,11 @@ describe "parser", ->
 
           Rainbows
         """
-        expect(doc.arguments).toEqual [
+        expect(doc.arguments).toEqualJson [
           name: 'fn'
           description: 'A {Function} to call inside the transaction.'
           type: 'Function'
+          isOptional: false
         ]
 
     describe "with different visibilities", ->
@@ -238,11 +239,33 @@ describe "parser", ->
       """
       doc = parse(str)
 
-      expect(doc.arguments).toEqual [
+      expect(doc.arguments).toEqualJson [
         name: 'fn'
         description: 'A {Function} to call inside the transaction.'
         type: 'Function'
+        isOptional: false
       ]
+
+    it "parses optional arguments", ->
+      str = """
+        Public: Batch multiple operations as a single undo/redo step.
+
+        * `index` {Int} index
+        * `fn` (optional) A {Function} to call inside the transaction.
+      """
+      doc = parse(str)
+
+      expect(doc.arguments).toEqualJson [{
+        name: 'index'
+        description: '{Int} index'
+        type: 'Int'
+        isOptional: false
+      }, {
+        name: 'fn'
+        description: 'A {Function} to call inside the transaction.'
+        type: 'Function'
+        isOptional: true
+      }]
 
     it "parses names with all the accepted characters", ->
       str = """
@@ -266,14 +289,16 @@ describe "parser", ->
       """
       doc = parse(str)
 
-      expect(doc.arguments).toEqual [{
+      expect(doc.arguments).toEqualJson [{
         name: 'options'
         description: "{Object} options hash \n```js\na = 1\n```"
         type: 'Object'
+        isOptional: false
       }, {
         name: 'something'
         description: "{Object} something"
         type: 'Object'
+        isOptional: false
       }]
 
     it "handles nested arguments", ->
@@ -289,32 +314,38 @@ describe "parser", ->
       """
       doc = parse(str)
 
-      expect(doc.arguments).toEqual [{
+      expect(doc.arguments).toEqualJson [{
         name: '1'
         description: 'one'
         type: null
+        isOptional: false
         children: [{
           name: '1.1'
           description: 'two'
           type: null
+          isOptional: false
         },{
           name: '1.2'
           description: 'three'
           type: null
+          isOptional: false
           children: [{
             name: '1.2.1'
             description: 'four'
             type: null
+            isOptional: false
           }]
         },{
           name: '1.3'
           description: 'five'
           type: null
+          isOptional: false
         }]
       },{
         name: '2'
         description: 'six'
         type: null
+        isOptional: false
       }]
 
     describe 'when there is an "Arguments" header', ->
@@ -327,10 +358,11 @@ describe "parser", ->
           * `something` A {Bool}
         """
         doc = parse(str)
-        expect(doc.arguments).toEqual [
+        expect(doc.arguments).toEqualJson [
           name: 'something'
           description: 'A {Bool}'
           type: 'Bool'
+          isOptional: false
         ]
 
       it "parses arguments with a description by ignoring the description", ->
@@ -344,10 +376,11 @@ describe "parser", ->
           * `something` A {Bool}
         """
         doc = parse(str)
-        expect(doc.arguments).toEqual [
+        expect(doc.arguments).toEqualJson [
           name: 'something'
           description: 'A {Bool}'
           type: 'Bool'
+          isOptional: false
         ]
 
   describe 'events section', ->
@@ -376,10 +409,12 @@ describe "parser", ->
           name: 'options'
           description: 'options hash'
           type: null
+          isOptional: false
           children: [
             name: 'anOption'
             description: 'true to do something'
             type: null
+            isOptional: false
           ]
         ]
       ]
@@ -416,6 +451,7 @@ describe "parser", ->
           name: 'options'
           description: 'options hash'
           type: null
+          isOptional: false
         ]
       ]
 
@@ -485,7 +521,7 @@ describe "parser", ->
         ```
       """
       doc = parse(str)
-      expect(doc.examples).toEqual [{
+      expect(doc.examples).toEqualJson [{
         description: 'This is example one'
         code: 'ok = 1'
         lang: 'coffee'
@@ -522,7 +558,7 @@ describe "parser", ->
         ```
       """
       doc = parse(str)
-      expect(doc.examples).toEqual [{
+      expect(doc.examples).toEqualJson [{
         description: ''
         code: 'ok = 1'
         lang: 'coffee'
@@ -568,6 +604,7 @@ describe "parser", ->
         name: 'fn'
         description: 'A {Function} to call inside the transaction.'
         type: 'Function'
+        isOptional: false
       ]
 
       expect(doc.returnValues).toEqualJson [{
@@ -618,7 +655,7 @@ describe "parser", ->
       """
       doc = parse(str)
 
-      expect(doc.returnValues).toEqual [{
+      expect(doc.returnValues).toEqualJson [{
         type: 'Bool'
         description: 'Returns a {Bool} when X happens'
       },{
