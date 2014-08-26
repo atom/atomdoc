@@ -91,9 +91,11 @@ parseEventsSection = (tokens) ->
   firstToken = _.first(tokens)
   return unless firstToken and firstToken.type == 'heading' and firstToken.text is 'Events' and firstToken.depth is SpecialHeadingDepth
 
+  eventHeadingDepth = SpecialHeadingDepth + 1
+
   # We consume until there is a heading of h3 which denotes the beginning of an event.
   stopTokenCallback = (token, tokens) ->
-    return false if token.type is 'heading' and token.depth is SpecialHeadingDepth + 1
+    return false if token.type is 'heading' and token.depth is eventHeadingDepth
     stopOnSectionBoundaries(token, tokens)
 
   events = []
@@ -104,7 +106,7 @@ parseEventsSection = (tokens) ->
     generateDescription(tokens, stopTokenCallback)
 
     firstToken = _.first(tokens)
-    if firstToken?.type is 'heading'
+    if firstToken?.type is 'heading' and firstToken.depth is eventHeadingDepth
       tokens.shift() # consume the header
       {summary, description, visibility} = parseSummaryAndDescription(tokens, stopTokenCallback)
       name = firstToken.text

@@ -330,8 +330,6 @@ describe "parser", ->
         isOptional: false
       }]
 
-
-
     it "handles nested arguments", ->
       str = """
         Public: Batch multiple operations as a single undo/redo step.
@@ -619,6 +617,46 @@ describe "parser", ->
       """
       doc = parse(str)
       expect(doc.examples).not.toBeDefined()
+
+    describe 'when there is an events section above the examples section', ->
+      it "parses out both the Events and Examples sections", ->
+        str = """
+          Public: Batch multiple operations as a single undo/redo step.
+
+          ## Events
+
+          Events do this and that and this too.
+
+          ### contents-modified
+
+          Public: Fired when this thing happens.
+
+          ## Examples
+
+          This is example one
+
+          ```coffee
+          ok = 1
+          ```
+        """
+        doc = parse(str)
+        expect(doc.events).toEqualJson [
+          name: 'contents-modified'
+          summary: 'Fired when this thing happens.'
+          description: 'Fired when this thing happens.'
+          visibility: 'Public'
+          arguments: null
+        ]
+        expect(doc.examples).toEqualJson [
+          description: 'This is example one'
+          code: 'ok = 1'
+          lang: 'coffee'
+          raw: """
+          ```coffee
+          ok = 1
+          ```
+          """
+        ]
 
   describe 'parsing returns', ->
     it "parses returns when there are arguments", ->
