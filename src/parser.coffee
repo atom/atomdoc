@@ -183,10 +183,25 @@ parseArgumentList = (tokens) ->
     token = tokens[0]
     switch token.type
       when 'list_start'
-        depth++
-        argumentsListStack.push argumentsList if argumentsList?
-        argumentsList = []
-        tokens.shift()
+        # This list might not be a argument list. Check...
+        foundListStart = false
+        parseAsArgumentList = false
+        for token in tokens
+          if token.type in ['list_item_start', 'loose_item_start']
+            foundListStart = true
+          else if token.type is 'text' and foundListStart
+            parseAsArgumentList = isArgumentListItem(token.text)
+            break
+
+        if parseAsArgumentList
+          depth++
+          argumentsListStack.push argumentsList if argumentsList?
+          argumentsList = []
+          tokens.shift()
+        else if argument?
+          # If not, consume the list as part of the description
+          argument?.text ?= []
+          argument.text.push '\n' + generateList(tokens)
 
       when 'list_item_start', 'loose_item_start'
         argumentStack.push argument if argument?
@@ -204,7 +219,7 @@ parseArgumentList = (tokens) ->
 
       when 'list_item_end', 'loose_item_end'
         if argument?
-          _.extend argument, parseListItem(argument.text.join(' '))
+          _.extend argument, parseListItem(argument.text.join(' ').replace(new RegExp(' \n', 'g'), '\n'))
           argumentsList.push argument
           delete argument.text
 
@@ -249,6 +264,9 @@ tokens. Yeah, it generates markdown from the lexed markdown tokens.
 
 isReturnValue = (string) ->
   new RegExp(ReturnsRegex).test(string)
+
+isArgumentListItem = (string) ->
+  new RegExp(ArgumentListItemRegex).test(string)
 
 stopOnSectionBoundaries = (token, tokens) ->
   if token.type in ['paragraph', 'text']

@@ -291,7 +291,7 @@ describe "parser", ->
 
       expect(doc.arguments).toEqualJson [{
         name: 'options'
-        description: "{Object} options hash \n```js\na = 1\n```"
+        description: "{Object} options hash\n```js\na = 1\n```"
         type: 'Object'
         isOptional: false
       }, {
@@ -300,6 +300,37 @@ describe "parser", ->
         type: 'Object'
         isOptional: false
       }]
+
+    it 'parses non-argument sublists as description', ->
+      str = """
+        Public: Create a marker with the given range.
+
+        * `range` {Range}
+        * `properties` A hash of key-value pairs
+          * __never__: The marker is never marked as invalid.
+          * __surround__: The marker is invalidated by changes that completely surround it.
+
+        Returns a {Marker}
+      """
+      doc = parse(str)
+
+      expect(doc.arguments).toEqualJson [{
+        name: 'range'
+        description: "{Range}"
+        type: 'Range'
+        isOptional: false
+      }, {
+        name: 'properties'
+        description: """
+          A hash of key-value pairs
+          * __never__: The marker is never marked as invalid.
+          * __surround__: The marker is invalidated by changes that completely surround it.
+        """
+        type: null
+        isOptional: false
+      }]
+
+
 
     it "handles nested arguments", ->
       str = """
