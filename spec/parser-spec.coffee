@@ -659,27 +659,48 @@ describe "parser", ->
         ]
 
   describe 'parsing returns', ->
-    it "parses returns when there are arguments", ->
-      str = """
-        Public: Batch multiple operations as a single undo/redo step.
+    describe 'when there are arguments', ->
+      it "parses returns when the arguments are before the return", ->
+        str = """
+          Public: Batch multiple operations as a single undo/redo step.
 
-        * `fn` A {Function} to call inside the transaction.
+          * `fn` A {Function} to call inside the transaction.
 
-        Returns a {Bool}
-      """
-      doc = parse(str)
+          Returns a {Bool}
+        """
+        doc = parse(str)
 
-      expect(doc.arguments).toEqualJson [
-        name: 'fn'
-        description: 'A {Function} to call inside the transaction.'
-        type: 'Function'
-        isOptional: false
-      ]
+        expect(doc.arguments).toEqualJson [
+          name: 'fn'
+          description: 'A {Function} to call inside the transaction.'
+          type: 'Function'
+          isOptional: false
+        ]
 
-      expect(doc.returnValues).toEqualJson [{
-        type: 'Bool'
-        description: 'Returns a {Bool}'
-      }]
+        expect(doc.returnValues).toEqualJson [{
+          type: 'Bool'
+          description: 'Returns a {Bool}'
+        }]
+
+      it "parses returns when the return is the body and the args are after the return", ->
+        str = """
+          Public: Returns a {Bool}
+
+          * `fn` A {Function} to call inside the transaction.
+        """
+        doc = parse(str)
+
+        expect(doc.arguments).toEqualJson [
+          name: 'fn'
+          description: 'A {Function} to call inside the transaction.'
+          type: 'Function'
+          isOptional: false
+        ]
+
+        expect(doc.returnValues).toEqualJson [{
+          type: 'Bool'
+          description: 'Returns a {Bool}'
+        }]
 
     it "parses returns when they span multiple lines", ->
       str = """
@@ -693,7 +714,7 @@ describe "parser", ->
 
       expect(doc.returnValues).toEqualJson [{
         type: 'Bool'
-        description: 'Returns a {Bool} when X happens'
+        description: 'Returns a {Bool} when\n  X happens'
       },{
         type: 'Function'
         description: 'Returns a {Function} when something else happens'
@@ -726,11 +747,49 @@ describe "parser", ->
 
       expect(doc.returnValues).toEqualJson [{
         type: 'Bool'
-        description: 'Returns a {Bool} when X happens'
+        description: 'Returns a {Bool} when\n  X happens'
       },{
         type: 'Function'
         description: 'Returns a {Function} when something else happens'
       },{
         type: 'Bool'
         description: 'Returns another {Bool} when Y happens'
+      }]
+
+    it "parses return when it contains a list", ->
+      str = """
+        Public: Batch multiple operations as a single undo/redo step.
+
+        Returns an {Object} with params:
+          * `one` does stuff
+          * `two` does more stuff
+        Returns null when nothing happens
+        Returns other when this code is run
+
+        ```coffee
+        a = something()
+        ```
+      """
+      doc = parse(str)
+
+      expect(doc.returnValues).toEqualJson [{
+        type: 'Object'
+        description: """
+          Returns an {Object} with params:
+
+          * `one` does stuff
+          * `two` does more stuff
+        """
+      }, {
+        type: null
+        description: 'Returns null when nothing happens'
+      }, {
+        type: null
+        description: """
+          Returns other when this code is run
+
+          ```coffee
+          a = something()
+          ```
+        """
       }]

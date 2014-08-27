@@ -40,7 +40,7 @@ parse = (docString) ->
       doc.events = events
     else if examples = parseExamplesSection(tokens)
       doc.examples = examples
-    else if returnValues = parseReturnValues(tokens)
+    else if returnValues = parseReturnValues(tokens, true)
       doc.setReturnValues(returnValues)
     else
       tokens.shift()
@@ -61,7 +61,7 @@ parseSummaryAndDescription = (tokens, tokenCallback=stopOnSectionBoundaries) ->
       rawSummary = rawSummary.replace(rawVisibility, '')
 
   if isReturnValue(rawSummary)
-    returnValues = parseReturnValues(tokens)
+    returnValues = parseReturnValues(tokens, false)
     {summary, description, visibility, returnValues}
   else
     summary = rawSummary
@@ -143,13 +143,17 @@ parseExamplesSection = (tokens) ->
 
   examples if examples.length
 
-parseReturnValues = (tokens) ->
+parseReturnValues = (tokens, consumeTokensAfterReturn=false) ->
   firstToken = _.first(tokens)
   return unless firstToken and firstToken.type in ['paragraph', 'text'] and isReturnValue(firstToken.text)
 
-  token = tokens.shift()
-  returnsMatches = new RegExp(ReturnsRegex).exec(token.text) # there might be a `Public: ` in front of the return.
-  normalizedString = token.text.replace(returnsMatches[1], '').replace(/\n/g, ' ').replace(/\s{2,}/g, ' ')
+  returnsMatches = new RegExp(ReturnsRegex).exec(firstToken.text) # there might be a `Public: ` in front of the return.
+  if consumeTokensAfterReturn
+    normalizedString = generateDescription(tokens, -> true).replace(returnsMatches[1], '')
+  else
+    token = tokens.shift()
+    normalizedString = token.text.replace(returnsMatches[1], '').replace(/\s{2,}/g, ' ')
+
 
   returnValues = null
 
