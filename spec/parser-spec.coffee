@@ -10,7 +10,6 @@ describe "parser", ->
       expect(doc.visibility).toBe 'Public'
       expect(doc.summary).toBe 'Batch multiple operations as a single undo/redo step.'
       expect(doc.description).toBe 'Batch multiple operations as a single undo/redo step.'
-      expect(doc.sections).toEqual []
       expect(doc.returnValue).not.toBeDefined()
       expect(doc.examples).not.toBeDefined()
       expect(doc.delegation).not.toBeDefined()
@@ -30,7 +29,6 @@ describe "parser", ->
 
         Here is some description.
       """
-      expect(doc.sections).toEqual []
       expect(doc.returnValue).not.toBeDefined()
       expect(doc.examples).not.toBeDefined()
       expect(doc.delegation).not.toBeDefined()
@@ -66,7 +64,6 @@ describe "parser", ->
         for a in [1, 2, 3]
         ```
       """
-      expect(doc.sections).toEqual []
 
     it "parses the description when there are headings", ->
       str = """
@@ -88,7 +85,6 @@ describe "parser", ->
 
         Do your thing
       """
-      expect(doc.sections).toEqual []
 
     it "parses the description when there are blockquotes", ->
       str = """
@@ -116,7 +112,6 @@ describe "parser", ->
 
         > a second block
       """
-      expect(doc.sections).toEqual []
 
     describe 'when there are lists in the description', ->
       it "parses the description when there are lists that are not arg lists", ->
@@ -172,7 +167,6 @@ describe "parser", ->
 
           Painful.
         """
-        expect(doc.sections).toEqual []
 
       it "description lists do not interfere with the arguments", ->
         str = """

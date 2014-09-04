@@ -2,7 +2,6 @@ module.exports =
 class Doc
   constructor: (@originalText) ->
     @visibility = 'Private'
-    @sections = []
 
   isPublic: ->
     /public|essential|extended/i.test(@visibility)
@@ -18,13 +17,3 @@ class Doc
       @returnValues = @returnValues.concat returnValues
     else
       @returnValues = returnValues
-
-  toJSON: ->
-    {
-      @visibility
-      @summary
-      @description
-      @sections
-      @delegation
-      @returnValues
-    }
