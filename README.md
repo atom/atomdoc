@@ -2,9 +2,7 @@
 
 Parse atomdoc with JavaScript / CoffeeScript.
 
-## REALLY EXPERIMENTAL
-
-Like really really experimental. __Do not use__ for now. The doc format and output will change without warning! This project might go away altogether.
+Atomdoc is a code documentation format based on markdown. The atom team writes a lot of markdown, and its rules are our deep in our brains. So rather than adopt some other format we'd need to learn, we decided to build a parser around a few markdown conventions.
 
 ## Usage
 
@@ -20,24 +18,50 @@ It only has one method, `parse`, that takes no options.
 AtomDoc = require 'atomdoc'
 
 docString = """
+  Public: My awesome method that does stuff, but returns nothing and has
+  no arguments.
+"""
+doc = AtomDoc.parse(docString)
+```
+
+`doc` will be an object:
+
+```coffee
+{
+  "visibility": "Public",
+  "description": "My awesome method that does stuff, but returns nothing and has\nno arguments.",
+  "summary": "My awesome method that does stuff, but returns nothing and has\nno arguments."
+}
+```
+
+### Maximal example
+
+Using all the features.
+
+```coffee
+AtomDoc = require 'atomdoc'
+
+docString = """
   Public: My awesome method that does stuff.
 
   It does things and stuff and even more things, this is the description. The
   next section is the arguments. They can be nested. Useful for explaining the
   arguments passed to any callbacks.
 
-  * `count` An {Int} representing count
-  * `callback` A {Function} that will be called when finished
+  * `count` {Number} representing count
+  * `callback` {Function} that will be called when finished
     * `options` Options {Object} passed to your callback with the options:
       * `someOption` A {Bool}
       * `anotherOption` Another {Bool}
 
   ## Events
 
-  The events section can have a description if you like.
+  ### contents-modified
 
-  * `contents-modified` Fired when this thing happens.
-    * `options` An options hash
+  Public: Fired when this thing happens.
+
+  * `options` {Object} An options hash
+    * `someOption` {Object} An options hash
 
   ## Examples
 
@@ -48,7 +72,10 @@ docString = """
     console.log someOption, anotherOption
   `` `
 
-  Returns a {Bool}; true when it does the thing
+  Returns null in some case
+  Returns an {Object} with the keys:
+    * `someBool` a {Boolean}
+    * `someNumber` a {Number}
 """
 doc = AtomDoc.parse(docString)
 ```
@@ -61,69 +88,92 @@ doc = AtomDoc.parse(docString)
   "summary": "My awesome method that does stuff.",
   "description": """
     My awesome method that does stuff.
-
     It does things and stuff and even more things, this is the description. The
     next section is the arguments. They can be nested. Useful for explaining the
     arguments passed to any callbacks.
-  """
-  "sections": [{
-    "type": "arguments",
-    "description": "",
-    "arguments": [{
+  """,
+  "arguments": [
+    {
       "name": "count",
-      "description": "An {Int} representing count",
-      "type": "Int"
+      "description": "{Number} representing count",
+      "type": "Number",
+      "isOptional": false
     },
     {
-      "name": "callback"
-      "description": "A {Function} that will be called when finished"
-      "type": "Function"
-      "arguments": [{
-        "name": "options"
-        "description": "Options {Object} passed to your callback with the options:"
-        "type": "Object"
-        "arguments": [{
-          "name": "someOption",
-          "description": "A {Bool}",
-          "type": "Bool"
-        },
+      "children": [
         {
-          "name": "anotherOption",
-          "description": "Another {Bool}",
-          "type": "Bool"
-        }]
-      }]
-    }]
-  },
-  {
-    "type": "events",
-    "description": "The events section can have a description if you like.",
-    "events": [{
-      "name": "contents-modified"
-      "description": "Fired when this thing happens."
-      "type": null
-      "arguments": [{
-        "name": "options",
-        "description": "An options hash",
-        "type": null
-      }]
-    }]
-  },
-  {
-    "type": "examples",
-    "examples": [{
+          "name": "options",
+          "description": "Options {Object} passed to your callback with the options:",
+          "type": "Object",
+          "isOptional": false
+          "children": [
+            {
+              "name": "someOption",
+              "description": "A {Bool}",
+              "type": "Bool",
+              "isOptional": false
+            },
+            {
+              "name": "anotherOption",
+              "description": "Another {Bool}",
+              "type": "Bool",
+              "isOptional": false
+            }
+          ],
+        }
+      ],
+      "name": "callback",
+      "description": "{Function} that will be called when finished",
+      "type": "Function",
+      "isOptional": false
+    }
+  ],
+  "events": [
+    {
+      "name": "contents-modified",
+      "summary": "Fired when this thing happens.",
+      "description": "Fired when this thing happens.",
+      "visibility": "Public",
+      "arguments": [
+        {
+          "children": [
+            {
+              "name": "someOption",
+              "description": "{Object} An options hash",
+              "type": "Object",
+              "isOptional": false
+            }
+          ],
+          "name": "options",
+          "description": "{Object} An options hash",
+          "type": "Object",
+          "isOptional": false
+        }
+      ]
+    }
+  ],
+  "examples": [
+    {
       "description": "This is an example. It can have a description",
       "lang": "coffee",
       "code": "myMethod 20, ({someOption, anotherOption}) ->\n  console.log someOption, anotherOption",
       "raw": "```coffee\nmyMethod 20, ({someOption, anotherOption}) ->\n  console.log someOption, anotherOption\n```"
-    }]
-  }],
-  "returnValues": [{
-    "type": "Bool",
-    "description": "Returns a {Bool}; true when it does the thing"
-  }]
+    }
+  ],
+  "returnValues": [
+    {
+      "type": null,
+      "description": "Returns null in some case"
+    },
+    {
+      "type": "Object",
+      "description": "Returns an {Object} with the keys:\n\n* `someBool` a {Boolean}\n* `someNumber` a {Number}"
+    }
+  ]
 }
 ```
+
+## Notes
 
 The parser uses [marked]'s lexer.
 
