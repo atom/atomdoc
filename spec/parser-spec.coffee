@@ -371,6 +371,43 @@ describe "parser", ->
         isOptional: false
       }]
 
+    it "parses out an 'extra' description after the arguments", ->
+      str = """
+        Public: Invoke the given callback when all marker `::onDidChange`
+        observers have been notified following a change to the buffer.
+
+        * `callback` {Function} to be called after markers are updated.
+
+        The order of events following a buffer change is as follows:
+
+        * The text of the buffer is changed
+        * All markers are updated accordingly, but their `::onDidChange` observers
+          are not notified.
+
+        This is some more extra description
+
+        Returns a {Disposable} on which `.dispose()` can be called to unsubscribe.
+      """
+      doc = parse(str)
+      expect(doc.description).toEqualJson  """
+        Invoke the given callback when all marker `::onDidChange`
+        observers have been notified following a change to the buffer.
+
+        The order of events following a buffer change is as follows:
+
+        * The text of the buffer is changed
+        * All markers are updated accordingly, but their `::onDidChange` observers
+          are not notified.
+
+        This is some more extra description
+      """
+      expect(doc.arguments).toEqualJson  [
+        "name": "callback",
+        "description": "{Function} to be called after markers are updated.",
+        "type": "Function",
+        "isOptional": false
+      ]
+
     describe 'when there is an "Arguments" header', ->
       it "parses arguments without a description", ->
         str = """

@@ -43,7 +43,10 @@ parse = (docString) ->
     else if returnValues = parseReturnValues(tokens, true)
       doc.setReturnValues(returnValues)
     else
-      tokens.shift()
+      # These tokens are basically in no-mans land. We'll add them to the
+      # description so they dont get lost.
+      extraDescription = generateDescription(tokens, stopOnSectionBoundaries)
+      doc.description += "\n\n#{extraDescription}"
 
   doc
 
@@ -71,8 +74,10 @@ parseSummaryAndDescription = (tokens, tokenCallback=stopOnSectionBoundaries) ->
 
 parseArgumentsSection = (tokens) ->
   firstToken = _.first(tokens)
-  if firstToken and firstToken.type in ['list_start', 'heading']
-    return if firstToken.type == 'heading' and not (firstToken.text is 'Arguments' and firstToken.depth is SpecialHeadingDepth)
+  if firstToken and firstToken.type is 'heading'
+    return unless firstToken.text is 'Arguments' and firstToken.depth is SpecialHeadingDepth
+  else if firstToken and firstToken.type is 'list_start'
+    return unless isAtArgumentList(tokens)
   else
     return
 
@@ -190,14 +195,7 @@ parseArgumentList = (tokens) ->
     switch token.type
       when 'list_start'
         # This list might not be a argument list. Check...
-        foundListStart = false
-        parseAsArgumentList = false
-        for token in tokens
-          if token.type in ['list_item_start', 'loose_item_start']
-            foundListStart = true
-          else if token.type is 'text' and foundListStart
-            parseAsArgumentList = isArgumentListItem(token.text)
-            break
+        parseAsArgumentList = isAtArgumentList(tokens)
 
         if parseAsArgumentList
           depth++
@@ -273,6 +271,14 @@ isReturnValue = (string) ->
 
 isArgumentListItem = (string) ->
   new RegExp(ArgumentListItemRegex).test(string)
+
+isAtArgumentList = (tokens) ->
+  foundListStart = false
+  for token in tokens
+    if token.type in ['list_item_start', 'loose_item_start']
+      foundListStart = true
+    else if token.type is 'text' and foundListStart
+      return isArgumentListItem(token.text)
 
 stopOnSectionBoundaries = (token, tokens) ->
   if token.type in ['paragraph', 'text']
