@@ -6,7 +6,7 @@ Atomdoc is a code documentation format based on markdown. The atom team writes a
 
 ## Usage
 
-It's on [npm](https://www.npmjs.org/package/atomdoc)
+It's on [npm](https://www.npmjs.org/package/atomdoc).
 
 ```
 npm install atomdoc
@@ -175,7 +175,7 @@ doc = AtomDoc.parse(docString)
 
 ## Notes
 
-The parser uses [marked]'s lexer.
+The parser uses [marked][marked]'s lexer.
 
 
-[marked]:https://github.com/chjj/marked
+[marked]: https://github.com/chjj/marked
