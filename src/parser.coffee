@@ -4,7 +4,7 @@ Doc = require './doc'
 {getLinkMatch, multiplyString} = require './utils'
 
 SpecialHeadingDepth = 2
-SpecialHeadings = ['Arguments', 'Events', 'Examples']
+SpecialHeadings = '^Arguments|Events|Examples'
 
 VisibilityRegex = '^\\s*([a-zA-Z]+):\\s*'
 ReturnsRegex = "(#{VisibilityRegex})?\\s*Returns"
@@ -34,7 +34,10 @@ parse = (docString) ->
   _.extend doc, parseSummaryAndDescription(tokens)
 
   while tokens.length
-    if args = parseArgumentsSection(tokens)
+    if titledArgs = parseTitledArgumentsSection(tokens)
+      doc.titledArguments ?= []
+      doc.titledArguments.push titledArgs
+    else if args = parseArgumentsSection(tokens)
       doc.arguments = args
     else if events = parseEventsSection(tokens)
       doc.events = events
@@ -91,6 +94,17 @@ parseArgumentsSection = (tokens) ->
     args = parseArgumentList(tokens)
 
   args
+
+parseTitledArgumentsSection = (tokens) ->
+  firstToken = _.first(tokens)
+  return unless firstToken and firstToken.type is 'heading'
+  return unless firstToken.text.indexOf('Arguments:') is 0 and firstToken.depth is SpecialHeadingDepth
+
+  {
+    title: tokens.shift().text.replace('Arguments:', '').trim()
+    description: generateDescription(tokens, stopOnSectionBoundaries)
+    arguments: parseArgumentList(tokens)
+  }
 
 parseEventsSection = (tokens) ->
   firstToken = _.first(tokens)
@@ -285,7 +299,7 @@ stopOnSectionBoundaries = (token, tokens) ->
     return false if isReturnValue(token.text)
 
   else if token.type is 'heading'
-    return false if token.depth == SpecialHeadingDepth and token.text in SpecialHeadings
+    return false if token.depth == SpecialHeadingDepth and new RegExp(SpecialHeadings).test(token.text)
 
   else if token.type is 'list_start'
     listToken = null

@@ -443,6 +443,43 @@ describe "parser", ->
           isOptional: false
         ]
 
+    describe 'when there are multiple "Arguments" headers describing different forms of the method', ->
+      it "parses arguments without a description", ->
+        str = """
+          Public: Batch multiple operations as a single undo/redo step.
+
+          ## Arguments: Form one
+
+          * `something` A {Bool}
+
+          ## Arguments: Form two
+
+          Some description here.
+
+          * `somethingElse` A {String}
+        """
+        doc = parse(str)
+        expect(doc.arguments).toBeUndefined()
+        expect(doc.titledArguments).toEqualJson [{
+          title: 'Form one'
+          description: ''
+          arguments: [
+            name: 'something'
+            description: 'A {Bool}'
+            type: 'Bool'
+            isOptional: false
+          ]
+        },{
+          title: 'Form two'
+          description: 'Some description here.'
+          arguments: [
+            name: 'somethingElse'
+            description: 'A {String}'
+            type: 'String'
+            isOptional: false
+          ]
+        }]
+
   describe 'events section', ->
     it "parses events with nested arguments", ->
       str = """
