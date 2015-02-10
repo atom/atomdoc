@@ -2,7 +2,7 @@
 
 Parse atomdoc with JavaScript / CoffeeScript.
 
-Atomdoc is a code documentation format based on markdown. The atom team writes a lot of markdown, and its rules are our deep in our brains. So rather than adopt some other format we'd need to learn, we decided to build a parser around a few markdown conventions.
+Atomdoc is a code documentation format based on markdown. The atom team writes a lot of markdown, and its rules are deep in our brains. So rather than adopting some other format we'd need to learn, we decided to build a parser around a few markdown conventions.
 
 ## Usage
 
@@ -12,7 +12,7 @@ It's on [npm](https://www.npmjs.org/package/atomdoc).
 npm install atomdoc
 ```
 
-It only has one method, `parse`, that takes no options.
+It has only one method, `parse`, which takes no options.
 
 ```coffee
 AtomDoc = require 'atomdoc'
@@ -65,15 +65,15 @@ docString = """
 
   ## Examples
 
-  This is an example. It can have a description
+  This is an example. It can have a description.
 
   ```coffee
   myMethod 20, ({someOption, anotherOption}) ->
     console.log someOption, anotherOption
   `` `
 
-  Returns null in some case
-  Returns an {Object} with the keys:
+  Returns null in some cases
+  Returns an {Object} with these keys:
     * `someBool` a {Boolean}
     * `someNumber` a {Number}
 """
