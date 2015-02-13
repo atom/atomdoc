@@ -70,7 +70,7 @@ docString = """
   ```coffee
   myMethod 20, ({someOption, anotherOption}) ->
     console.log someOption, anotherOption
-  `` `
+  ```
 
   Returns null in some cases
   Returns an {Object} with these keys:
