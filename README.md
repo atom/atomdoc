@@ -1,4 +1,4 @@
-# AtomDoc parser
+# AtomDoc parser [![Build Status](https://travis-ci.org/atom/atomdoc.svg?branch=master)](https://travis-ci.org/atom/atomdoc)
 
 Parse atomdoc with JavaScript / CoffeeScript.
 
