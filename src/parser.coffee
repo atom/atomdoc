@@ -166,12 +166,12 @@ parseReturnValues = (tokens, consumeTokensAfterReturn=false) ->
   firstToken = _.first(tokens)
   return unless firstToken and firstToken.type in ['paragraph', 'text'] and isReturnValue(firstToken.text)
 
-  returnsMatches = new RegExp(ReturnsRegex).exec(firstToken.text) # there might be a `Public: ` in front of the return.
   if consumeTokensAfterReturn
-    normalizedString = generateDescription(tokens, -> true).replace(returnsMatches[1], '')
+    # there might be a `Public: ` in front of the return.
+    normalizedString = generateDescription(tokens, -> true).replace(new RegExp(VisibilityRegex), '')
   else
     token = tokens.shift()
-    normalizedString = token.text.replace(returnsMatches[1], '').replace(/\s{2,}/g, ' ')
+    normalizedString = token.text.replace(new RegExp(VisibilityRegex), '').replace(/\s{2,}/g, ' ')
 
 
   returnValues = null
