@@ -1,7 +1,7 @@
 {
   "name": "atomdoc",
   "version": "1.0.4",
-  "description": "A atomdoc parser",
+  "description": "An atomdoc parser",
   "main": "./lib/atomdoc.js",
   "scripts": {
     "test": "grunt test",
