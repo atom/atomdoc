@@ -23,7 +23,7 @@
   "homepage": "http://atom.github.io/atomdoc",
   "dependencies": {
     "marked": "^0.3.6",
-    "underscore": "~1.6"
+    "underscore": "~1.8"
   },
   "devDependencies": {
     "grunt": "^1.0.1",
