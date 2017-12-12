@@ -26,13 +26,13 @@
     "underscore": "~1.6"
   },
   "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-cli": "~0.1.8",
+    "grunt-coffeelint": "0.0.6",
+    "grunt-contrib-coffee": "~0.7.0",
+    "grunt-shell": "~0.2.2",
     "jasmine-focused": "1.x",
     "jasmine-json": "~0.0",
-    "grunt-contrib-coffee": "~0.7.0",
-    "grunt-cli": "~0.1.8",
-    "grunt": "~0.4.1",
-    "grunt-shell": "~0.2.2",
-    "grunt-coffeelint": "0.0.6",
     "rimraf": "^2.5.2"
   }
 }
