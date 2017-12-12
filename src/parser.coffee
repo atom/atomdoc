@@ -269,7 +269,7 @@ parseListItem = (argumentString) ->
 
   if nameMatches = new RegExp(ArgumentListItemRegex).exec(argumentString)
     name = nameMatches[1]
-    description = description.replace(nameMatches[0], '') if nameMatches[0]?
+    description = description.replace(nameMatches[0], '')
     type = getLinkMatch(description)
     isOptional = !!nameMatches[3]
 
