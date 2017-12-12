@@ -875,3 +875,17 @@ describe "parser", ->
           Returns undefined.
         """
       }]
+    it "parses return when it contains the keyword `undefined`", ->
+      str = """
+         Public: Get the active {Package} with the given name.
+
+         Returns `undefined`.
+      """
+      doc = parse(str)
+
+      expect(doc.returnValues).toEqualJson [{
+        type: null,
+        description: """
+          Returns `undefined`.
+        """
+      }]
