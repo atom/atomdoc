@@ -64,7 +64,7 @@ parseSummaryAndDescription = (tokens, tokenCallback=stopOnSectionBoundaries) ->
     if visibilityMatch = new RegExp(VisibilityRegex).exec(rawSummary)
       visibility = visibilityMatch[1]
       rawVisibility = visibilityMatch[0]
-      rawSummary = rawSummary.replace(rawVisibility, '')
+      rawSummary = rawSummary.replace(rawVisibility, '') if rawVisibility?
 
   if isReturnValue(rawSummary)
     returnValues = parseReturnValues(tokens, false)
@@ -168,10 +168,15 @@ parseReturnValues = (tokens, consumeTokensAfterReturn=false) ->
 
   returnsMatches = new RegExp(ReturnsRegex).exec(firstToken.text) # there might be a `Public: ` in front of the return.
   if consumeTokensAfterReturn
-    normalizedString = generateDescription(tokens, -> true).replace(returnsMatches[1], '')
+    normalizedString = generateDescription(tokens, -> true)
+    if returnsMatches[1]?
+      normalizedString = normalizedString.replace(returnsMatches[1], '')
   else
     token = tokens.shift()
-    normalizedString = token.text.replace(returnsMatches[1], '').replace(/\s{2,}/g, ' ')
+    normalizedString = token.text
+    if returnsMatches[1]?
+      normalizedString = normalizedString.replace(returnsMatches[1], '')
+    normalizedString = normalizedString.replace(/\s{2,}/g, ' ')
 
 
   returnValues = null
