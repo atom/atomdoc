@@ -28,7 +28,7 @@
   "devDependencies": {
     "grunt": "^1.0.1",
     "grunt-coffeelint": "0.0.16",
-    "grunt-contrib-coffee": "~0.7.0",
+    "grunt-contrib-coffee": "^1.0.0",
     "grunt-shell": "^2.1.0",
     "jasmine-focused": "1.x",
     "jasmine-json": "~0.0",
