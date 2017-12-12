@@ -23,10 +23,6 @@ module.exports = (grunt) ->
     shell:
       test:
         command: 'jasmine-focused --captureExceptions --coffee spec/'
-        options:
-          stdout: true
-          stderr: true
-          failOnError: true
 
   grunt.loadNpmTasks('grunt-contrib-coffee')
   grunt.loadNpmTasks('grunt-shell')

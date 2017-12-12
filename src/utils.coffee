@@ -1,5 +1,3 @@
-_ = require 'underscore'
-
 module.exports =
   getLinkMatch: (text) ->
     if m = text.match(/\{([\w.]+)\}/)
