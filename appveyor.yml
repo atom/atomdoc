@@ -6,8 +6,6 @@ environment:
 install:
   # Get the requested version of Node.js
   - ps: Install-Product node $env:nodejs_version
-  - choco install atom -y
-  - cd %APPVEYOR_BUILD_FOLDER%
   - npm install
 
 build_script:
