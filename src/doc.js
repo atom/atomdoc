@@ -1,4 +1,5 @@
-module.exports = class Doc {
+module.exports =
+class Doc {
   constructor (originalText) {
     this.originalText = originalText
     this.visibility = 'Private'
