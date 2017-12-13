@@ -26,6 +26,7 @@
     "marked": "^0.3.6"
   },
   "devDependencies": {
+    "dedent": "^0.7.0",
     "jasmine-focused": "1.x",
     "jasmine-json": "~0.0",
     "standard": "^10.0.3"
