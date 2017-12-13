@@ -37,7 +37,7 @@ const parse = function (docString) {
   while (tokens.length) {
     let args, events, examples, returnValues, titledArgs
     if ((titledArgs = parseTitledArgumentsSection(tokens))) {
-      if (doc.titledArguments == null) { doc.titledArguments = [] }
+      if (doc.titledArguments == null) doc.titledArguments = []
       doc.titledArguments.push(titledArgs)
     } else if ((args = parseArgumentsSection(tokens))) {
       doc.arguments = args
@@ -71,7 +71,7 @@ const parseSummaryAndDescription = function (tokens, tokenCallback) {
     if (visibilityMatch) {
       visibility = visibilityMatch[1]
       rawVisibility = visibilityMatch[0]
-      if (rawVisibility) { rawSummary = rawSummary.replace(rawVisibility, '') }
+      if (rawVisibility) rawSummary = rawSummary.replace(rawVisibility, '')
     }
   }
 
@@ -81,19 +81,15 @@ const parseSummaryAndDescription = function (tokens, tokenCallback) {
   } else {
     summary = rawSummary
     description = generateDescription(tokens, tokenCallback)
-    if (rawVisibility) { description = description.replace(rawVisibility, '') }
+    if (rawVisibility) description = description.replace(rawVisibility, '')
     return {description, summary, visibility}
   }
 }
 
 const parseArgumentsSection = function (tokens) {
   const firstToken = tokens[0]
-  if (firstToken && (firstToken.type === 'heading')) {
-    if (firstToken.text !== 'Arguments' ||
-      firstToken.depth !== SpecialHeadingDepth
-    ) {
-      return
-    }
+  if (firstToken && firstToken.type === 'heading') {
+    if (firstToken.text !== 'Arguments' || firstToken.depth !== SpecialHeadingDepth) return
   } else if (firstToken && firstToken.type === 'list_start') {
     if (!isAtArgumentList(tokens)) { return }
   } else {
@@ -116,7 +112,7 @@ const parseArgumentsSection = function (tokens) {
 
 const parseTitledArgumentsSection = function (tokens) {
   const firstToken = tokens[0]
-  if (!firstToken || firstToken.type !== 'heading') { return }
+  if (!firstToken || firstToken.type !== 'heading') return
   if (!firstToken.text.startsWith('Arguments:') ||
     firstToken.depth !== SpecialHeadingDepth
   ) {
@@ -167,7 +163,7 @@ const parseEventsSection = function (tokens) {
         tokens, stopTokenCallback)
       const name = firstToken.text
       let args = parseArgumentList(tokens)
-      if (args.length === 0) { args = null }
+      if (args.length === 0) args = null
       events.push({name, summary, description, visibility, arguments: args})
     } else {
       break
@@ -191,7 +187,7 @@ const parseExamplesSection = function (tokens) {
 
   while (tokens.length) {
     const description = generateDescription(tokens, function (token, tokens) {
-      if (token.type === 'code') { return false }
+      if (token.type === 'code') return false
       return stopOnSectionBoundaries(token, tokens)
     })
 
@@ -280,14 +276,12 @@ const parseArgumentList = function (tokens) {
         const parseAsArgumentList = isAtArgumentList(tokens)
         if (parseAsArgumentList) {
           depth++
-          if (argumentsList) { argumentsListStack.push(argumentsList) }
+          if (argumentsList) argumentsListStack.push(argumentsList)
           argumentsList = []
           tokens.shift()
         } else if (argument) {
           // If not, consume the list as part of the description
-          if (!argument.text) {
-            argument.text = []
-          }
+          if (!argument.text) argument.text = []
           argument.text.push(`\n${generateList(tokens)}`)
         }
         break
@@ -300,12 +294,12 @@ const parseArgumentList = function (tokens) {
         break
 
       case 'code':
-        if (!argument.text) { argument.text = [] }
+        if (!argument.text) argument.text = []
         argument.text.push(`\n${generateCode(tokens)}`)
         break
 
       case 'text':
-        if (!argument.text) { argument.text = [] }
+        if (!argument.text) argument.text = []
         argument.text.push(token.text)
         tokens.shift()
         break
@@ -394,13 +388,11 @@ const stopOnSectionBoundaries = function (token, tokens) {
   } else if (token.type === 'list_start') {
     let listToken = null
     for (listToken of tokens) {
-      if (listToken.type === 'text') { break }
+      if (listToken.type === 'text') break
     }
 
     // Check if list is an arguments list. If it starts with `someVar`, it is.
-    if (listToken && ArgumentListItemRegex.test(listToken.text)) {
-      return false
-    }
+    if (listToken && ArgumentListItemRegex.test(listToken.text)) return false
   }
 
   return true
@@ -411,7 +403,7 @@ const generateDescription = function (tokens, tokenCallback) {
   let token
   const description = []
   while ((token = tokens[0])) {
-    if ((tokenCallback) && (tokenCallback(token, tokens) === false)) { break }
+    if ((tokenCallback) && (tokenCallback(token, tokens) === false)) break
 
     if (['paragraph', 'text'].includes(token.type)) {
       description.push(generateParagraph(tokens))
@@ -441,7 +433,7 @@ const generateBlockquote = function (tokens) {
   const lines = []
 
   while ((token = tokens.shift())) {
-    if (token.type === 'blockquote_end') { break }
+    if (token.type === 'blockquote_end') break
     if (token.text) {
       for (let line of token.text.split('\n')) {
         lines.push(`> ${line}`)
@@ -511,7 +503,7 @@ const generateList = function (tokens) {
     }
 
     token = tokens.shift()
-    if (depth < 0) { break }
+    if (depth < 0) break
   }
 
   return lines.join('\n')
