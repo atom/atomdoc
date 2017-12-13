@@ -58,7 +58,7 @@ const parse = function (docString) {
   return doc
 }
 
-var parseSummaryAndDescription = function (tokens, tokenCallback) {
+const parseSummaryAndDescription = function (tokens, tokenCallback) {
   if (tokenCallback == null) { tokenCallback = stopOnSectionBoundaries }
   let summary = ''
   let description = ''
@@ -86,7 +86,7 @@ var parseSummaryAndDescription = function (tokens, tokenCallback) {
   }
 }
 
-var parseArgumentsSection = function (tokens) {
+const parseArgumentsSection = function (tokens) {
   const firstToken = tokens[0]
   if (firstToken && (firstToken.type === 'heading')) {
     if (firstToken.text !== 'Arguments' ||
@@ -114,7 +114,7 @@ var parseArgumentsSection = function (tokens) {
   return args
 }
 
-var parseTitledArgumentsSection = function (tokens) {
+const parseTitledArgumentsSection = function (tokens) {
   const firstToken = tokens[0]
   if (!firstToken || firstToken.type !== 'heading') { return }
   if (!firstToken.text.startsWith('Arguments:') ||
@@ -130,7 +130,7 @@ var parseTitledArgumentsSection = function (tokens) {
   }
 }
 
-var parseEventsSection = function (tokens) {
+const parseEventsSection = function (tokens) {
   let firstToken = tokens[0]
   if (
     !firstToken ||
@@ -177,7 +177,7 @@ var parseEventsSection = function (tokens) {
   if (events.length) { return events }
 }
 
-var parseExamplesSection = function (tokens) {
+const parseExamplesSection = function (tokens) {
   let firstToken = tokens[0]
   if (
     !firstToken ||
@@ -212,7 +212,7 @@ var parseExamplesSection = function (tokens) {
   if (examples.length) { return examples }
 }
 
-var parseReturnValues = function (tokens, consumeTokensAfterReturn) {
+const parseReturnValues = function (tokens, consumeTokensAfterReturn) {
   let normalizedString
   if (consumeTokensAfterReturn == null) { consumeTokensAfterReturn = false }
   const firstToken = tokens[0]
@@ -264,7 +264,7 @@ var parseReturnValues = function (tokens, consumeTokensAfterReturn) {
 //
 // * `something` A {Bool}
 //   * `somethingNested` A nested object
-var parseArgumentList = function (tokens) {
+const parseArgumentList = function (tokens) {
   let depth = 0
   let args = []
   let argumentsList = null
@@ -277,8 +277,7 @@ var parseArgumentList = function (tokens) {
     switch (token.type) {
       case 'list_start':
         // This list might not be a argument list. Check...
-        var parseAsArgumentList = isAtArgumentList(tokens)
-
+        const parseAsArgumentList = isAtArgumentList(tokens)
         if (parseAsArgumentList) {
           depth++
           if (argumentsList) { argumentsListStack.push(argumentsList) }
@@ -342,7 +341,7 @@ var parseArgumentList = function (tokens) {
   return args
 }
 
-var parseListItem = function (argumentString) {
+const parseListItem = function (argumentString) {
   let isOptional
   let name = null
   let type = null
