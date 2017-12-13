@@ -6,6 +6,7 @@
   "scripts": {
     "test": "grunt test",
     "prepublish": "grunt clean lint coffee"
+    "lint": "standard src spec",
   },
   "repository": {
     "type": "git",
@@ -33,6 +34,18 @@
     "grunt": "~0.4.1",
     "grunt-shell": "~0.2.2",
     "grunt-coffeelint": "0.0.6",
-    "rimraf": "^2.5.2"
+    "rimraf": "^2.5.2",
+    "standard": "^10.0.3"
+  },
+  "standard": {
+    "env": {
+      "atomtest": true,
+      "browser": true,
+      "jasmine": true,
+      "node": true
+    },
+    "globals": [
+      "atom"
+    ]
   }
 }
