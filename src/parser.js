@@ -4,7 +4,7 @@ const Doc = require('./doc')
 const {getLinkMatch, multiplyString} = require('./utils')
 
 const SpecialHeadingDepth = 2
-const SpecialHeadings = '^Arguments|Events|Examples'
+const SpecialHeadings = /^Arguments|Events|Examples/
 
 const VisibilityRegexStr = '^\\s*([a-zA-Z]+):\\s*'
 const VisibilityRegex = new RegExp(VisibilityRegexStr)
@@ -90,10 +90,12 @@ var parseSummaryAndDescription = function (tokens, tokenCallback) {
 var parseArgumentsSection = function (tokens) {
   const firstToken = _.first(tokens)
   if (firstToken && (firstToken.type === 'heading')) {
-    if ((firstToken.text !== 'Arguments') || (firstToken.depth !== SpecialHeadingDepth)) {
+    if (firstToken.text !== 'Arguments' ||
+      firstToken.depth !== SpecialHeadingDepth
+    ) {
       return
     }
-  } else if (firstToken && (firstToken.type === 'list_start')) {
+  } else if (firstToken && firstToken.type === 'list_start') {
     if (!isAtArgumentList(tokens)) { return }
   } else {
     return
@@ -105,7 +107,8 @@ var parseArgumentsSection = function (tokens) {
     args = parseArgumentList(tokens)
   } else {
     tokens.shift() // consume the header
-    generateDescription(tokens, stopOnSectionBoundaries) // consume any BS before the args list
+    // consume any BS before the args list
+    generateDescription(tokens, stopOnSectionBoundaries)
     args = parseArgumentList(tokens)
   }
 
@@ -114,8 +117,12 @@ var parseArgumentsSection = function (tokens) {
 
 var parseTitledArgumentsSection = function (tokens) {
   const firstToken = _.first(tokens)
-  if (!firstToken || (firstToken.type !== 'heading')) { return }
-  if ((firstToken.text.indexOf('Arguments:') !== 0) || (firstToken.depth !== SpecialHeadingDepth)) { return }
+  if (!firstToken || firstToken.type !== 'heading') { return }
+  if (!firstToken.text.startsWith('Arguments:') ||
+    firstToken.depth !== SpecialHeadingDepth
+  ) {
+    return
+  }
 
   return {
     title: tokens.shift().text.replace('Arguments:', '').trim(),
@@ -126,13 +133,20 @@ var parseTitledArgumentsSection = function (tokens) {
 
 var parseEventsSection = function (tokens) {
   let firstToken = _.first(tokens)
-  if (!firstToken || (firstToken.type !== 'heading') || (firstToken.text !== 'Events') || (firstToken.depth !== SpecialHeadingDepth)) { return }
+  if (
+    !firstToken ||
+    firstToken.type !== 'heading' ||
+    firstToken.text !== 'Events' ||
+    firstToken.depth !== SpecialHeadingDepth
+  ) { return }
 
   const eventHeadingDepth = SpecialHeadingDepth + 1
 
   // We consume until there is a heading of h3 which denotes the beginning of an event.
   const stopTokenCallback = function (token, tokens) {
-    if ((token.type === 'heading') && (token.depth === eventHeadingDepth)) { return false }
+    if ((token.type === 'heading') && (token.depth === eventHeadingDepth)) {
+      return false
+    }
     return stopOnSectionBoundaries(token, tokens)
   }
 
@@ -144,9 +158,14 @@ var parseEventsSection = function (tokens) {
     generateDescription(tokens, stopTokenCallback)
 
     firstToken = _.first(tokens)
-    if (firstToken && firstToken.type === 'heading' && firstToken.depth === eventHeadingDepth) {
+    if (
+      firstToken &&
+      firstToken.type === 'heading' &&
+      firstToken.depth === eventHeadingDepth
+    ) {
       tokens.shift() // consume the header
-      const {summary, description, visibility} = parseSummaryAndDescription(tokens, stopTokenCallback)
+      const {summary, description, visibility} = parseSummaryAndDescription(
+        tokens, stopTokenCallback)
       const name = firstToken.text
       let args = parseArgumentList(tokens)
       if (args.length === 0) { args = null }
@@ -161,7 +180,12 @@ var parseEventsSection = function (tokens) {
 
 var parseExamplesSection = function (tokens) {
   let firstToken = _.first(tokens)
-  if (!firstToken || (firstToken.type !== 'heading') || (firstToken.text !== 'Examples') || (firstToken.depth !== SpecialHeadingDepth)) { return }
+  if (
+    !firstToken ||
+    firstToken.type !== 'heading' ||
+    firstToken.text !== 'Examples' ||
+    firstToken.depth !== SpecialHeadingDepth
+  ) { return }
 
   const examples = []
   tokens.shift() // consume the header
@@ -193,9 +217,14 @@ var parseReturnValues = function (tokens, consumeTokensAfterReturn) {
   let normalizedString
   if (consumeTokensAfterReturn == null) { consumeTokensAfterReturn = false }
   const firstToken = _.first(tokens)
-  if (!firstToken || !['paragraph', 'text'].includes(firstToken.type) || !isReturnValue(firstToken.text)) { return }
+  if (
+    !firstToken ||
+    !['paragraph', 'text'].includes(firstToken.type) ||
+    !isReturnValue(firstToken.text)
+  ) { return }
 
-  const returnsMatches = ReturnsRegex.exec(firstToken.text) // there might be a `Public: ` in front of the return.
+  // there might be a `Public: ` in front of the return.
+  const returnsMatches = ReturnsRegex.exec(firstToken.text)
   if (consumeTokensAfterReturn) {
     normalizedString = generateDescription(tokens, () => true)
     if (returnsMatches[1]) {
@@ -244,7 +273,7 @@ var parseArgumentList = function (tokens) {
   let argument = null
   const argumentStack = []
 
-  while (tokens.length && ((tokens[0].type === 'list_start') || depth)) {
+  while (tokens.length && (tokens[0].type === 'list_start' || depth)) {
     const token = tokens[0]
     switch (token.type) {
       case 'list_start':
@@ -265,7 +294,8 @@ var parseArgumentList = function (tokens) {
         }
         break
 
-      case 'list_item_start': case 'loose_item_start':
+      case 'list_item_start':
+      case 'loose_item_start':
         if (argument) { argumentStack.push(argument) }
         argument = {}
         tokens.shift()
@@ -282,9 +312,11 @@ var parseArgumentList = function (tokens) {
         tokens.shift()
         break
 
-      case 'list_item_end': case 'loose_item_end':
+      case 'list_item_end':
+      case 'loose_item_end':
         if (argument) {
-          _.extend(argument, parseListItem(argument.text.join(' ').replace(/ \n/g, '\n')))
+          _.extend(argument,
+            parseListItem(argument.text.join(' ').replace(/ \n/g, '\n')))
           argumentsList.push(argument)
           delete argument.text
         }
@@ -346,7 +378,7 @@ const isAtArgumentList = function (tokens) {
   for (let token of tokens) {
     if (['list_item_start', 'loose_item_start'].includes(token.type)) {
       foundListStart = true
-    } else if ((token.type === 'text') && foundListStart) {
+    } else if (token.type === 'text' && foundListStart) {
       return isArgumentListItem(token.text)
     }
   }
@@ -358,7 +390,7 @@ const stopOnSectionBoundaries = function (token, tokens) {
       return false
     }
   } else if (token.type === 'heading') {
-    if ((token.depth === SpecialHeadingDepth) && new RegExp(SpecialHeadings).test(token.text)) {
+    if (token.depth === SpecialHeadingDepth && SpecialHeadings.test(token.text)) {
       return false
     }
   } else if (token.type === 'list_start') {
@@ -451,11 +483,14 @@ const generateList = function (tokens) {
         ({ ordered } = token)
         break
 
-      case 'list_item_start': case 'loose_item_start':
+      case 'list_item_start':
+      case 'loose_item_start':
         linePrefix = ordered ? `${indent()}1. ` : `${indent()}* `
         break
 
-      case 'text': case 'code': case 'blockquote_start':
+      case 'text':
+      case 'code':
+      case 'blockquote_start':
         if (token.type === 'code') {
           textLines = generateCode(tokens).split('\n')
         } else if (token.type === 'blockquote_start') {
