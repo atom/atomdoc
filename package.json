@@ -23,8 +23,7 @@
   },
   "homepage": "http://atom.github.io/atomdoc",
   "dependencies": {
-    "marked": "^0.3.6",
-    "underscore": "~1.6"
+    "marked": "^0.3.6"
   },
   "devDependencies": {
     "jasmine-focused": "1.x",

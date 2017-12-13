@@ -1,4 +1,3 @@
-const _ = require('underscore')
 const marked = require('marked')
 const Doc = require('./doc')
 const {getLinkMatch} = require('./utils')
@@ -25,7 +24,7 @@ Translating things from markdown into our json format.
 const parse = function (docString) {
   const lexer = new marked.Lexer()
   const tokens = lexer.lex(docString)
-  const firstToken = _.first(tokens)
+  const firstToken = tokens[0]
 
   if (!firstToken || (firstToken.type !== 'paragraph')) {
     throw new Error('Doc string must start with a paragraph!')
@@ -33,7 +32,7 @@ const parse = function (docString) {
 
   const doc = new Doc(docString)
 
-  _.extend(doc, parseSummaryAndDescription(tokens))
+  Object.assign(doc, parseSummaryAndDescription(tokens))
 
   while (tokens.length) {
     let args, events, examples, returnValues, titledArgs
@@ -88,7 +87,7 @@ var parseSummaryAndDescription = function (tokens, tokenCallback) {
 }
 
 var parseArgumentsSection = function (tokens) {
-  const firstToken = _.first(tokens)
+  const firstToken = tokens[0]
   if (firstToken && (firstToken.type === 'heading')) {
     if (firstToken.text !== 'Arguments' ||
       firstToken.depth !== SpecialHeadingDepth
@@ -116,7 +115,7 @@ var parseArgumentsSection = function (tokens) {
 }
 
 var parseTitledArgumentsSection = function (tokens) {
-  const firstToken = _.first(tokens)
+  const firstToken = tokens[0]
   if (!firstToken || firstToken.type !== 'heading') { return }
   if (!firstToken.text.startsWith('Arguments:') ||
     firstToken.depth !== SpecialHeadingDepth
@@ -132,7 +131,7 @@ var parseTitledArgumentsSection = function (tokens) {
 }
 
 var parseEventsSection = function (tokens) {
-  let firstToken = _.first(tokens)
+  let firstToken = tokens[0]
   if (
     !firstToken ||
     firstToken.type !== 'heading' ||
@@ -157,7 +156,7 @@ var parseEventsSection = function (tokens) {
     // We consume until there is a heading of h3 which denotes the beginning of an event.
     generateDescription(tokens, stopTokenCallback)
 
-    firstToken = _.first(tokens)
+    firstToken = tokens[0]
     if (
       firstToken &&
       firstToken.type === 'heading' &&
@@ -179,7 +178,7 @@ var parseEventsSection = function (tokens) {
 }
 
 var parseExamplesSection = function (tokens) {
-  let firstToken = _.first(tokens)
+  let firstToken = tokens[0]
   if (
     !firstToken ||
     firstToken.type !== 'heading' ||
@@ -196,7 +195,7 @@ var parseExamplesSection = function (tokens) {
       return stopOnSectionBoundaries(token, tokens)
     })
 
-    firstToken = _.first(tokens)
+    firstToken = tokens[0]
     if (firstToken.type === 'code') {
       const example = {
         description,
@@ -216,7 +215,7 @@ var parseExamplesSection = function (tokens) {
 var parseReturnValues = function (tokens, consumeTokensAfterReturn) {
   let normalizedString
   if (consumeTokensAfterReturn == null) { consumeTokensAfterReturn = false }
-  const firstToken = _.first(tokens)
+  const firstToken = tokens[0]
   if (
     !firstToken ||
     !['paragraph', 'text'].includes(firstToken.type) ||
@@ -315,7 +314,7 @@ var parseArgumentList = function (tokens) {
       case 'list_item_end':
       case 'loose_item_end':
         if (argument) {
-          _.extend(argument,
+          Object.assign(argument,
             parseListItem(argument.text.join(' ').replace(/ \n/g, '\n')))
           argumentsList.push(argument)
           delete argument.text
@@ -412,7 +411,7 @@ const stopOnSectionBoundaries = function (token, tokens) {
 const generateDescription = function (tokens, tokenCallback) {
   let token
   const description = []
-  while ((token = _.first(tokens))) {
+  while ((token = tokens[0])) {
     if ((tokenCallback) && (tokenCallback(token, tokens) === false)) { break }
 
     if (['paragraph', 'text'].includes(token.type)) {
@@ -474,7 +473,7 @@ const generateList = function (tokens) {
 
   const indent = () => '  '.repeat(depth)
 
-  while ((token = _.first(tokens))) {
+  while ((token = tokens[0])) {
     let textLines
     switch (token.type) {
       case 'list_start':
