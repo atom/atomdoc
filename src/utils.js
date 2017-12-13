@@ -1,14 +1,14 @@
 module.exports = {
-  getLinkMatch(text) {
-    const m = text.match(/\{([\w.]+)\}/);
+  getLinkMatch (text) {
+    const m = text.match(/\{([\w.]+)\}/)
     if (m) {
-      return m[1];
+      return m[1]
     } else {
-      return null;
+      return null
     }
   },
 
-  multiplyString(string, times) {
-    return string.repeat(times);
+  multiplyString (string, times) {
+    return string.repeat(times)
   }
-};
+}

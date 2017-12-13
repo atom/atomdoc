@@ -3,45 +3,45 @@
  * DS102: Remove unnecessary code created because of implicit returns
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
-require('jasmine-json');
-const {parse} = require('../src/parser');
+require('jasmine-json')
+const {parse} = require('../src/parser')
 
-describe("parser", function() {
-  describe('summary and description', function() {
-    it("parses a simple one liner", function() {
-      const str = "Public: Batch multiple operations as a single undo/redo step.";
-      const doc = parse(str);
+describe('parser', function () {
+  describe('summary and description', function () {
+    it('parses a simple one liner', function () {
+      const str = 'Public: Batch multiple operations as a single undo/redo step.'
+      const doc = parse(str)
 
-      expect(doc.visibility).toBe('Public');
-      expect(doc.summary).toBe('Batch multiple operations as a single undo/redo step.');
-      expect(doc.description).toBe('Batch multiple operations as a single undo/redo step.');
-      expect(doc.returnValue).not.toBeDefined();
-      expect(doc.examples).not.toBeDefined();
-      expect(doc.delegation).not.toBeDefined();
-    });
+      expect(doc.visibility).toBe('Public')
+      expect(doc.summary).toBe('Batch multiple operations as a single undo/redo step.')
+      expect(doc.description).toBe('Batch multiple operations as a single undo/redo step.')
+      expect(doc.returnValue).not.toBeDefined()
+      expect(doc.examples).not.toBeDefined()
+      expect(doc.delegation).not.toBeDefined()
+    })
 
-    it("parses the description properly", function() {
+    it('parses the description properly', function () {
       const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
 Here is some description.\
-`;
-      const doc = parse(str);
+`
+      const doc = parse(str)
 
-      expect(doc.visibility).toBe('Public');
-      expect(doc.summary).toBe('Batch multiple operations as a single undo/redo step.');
+      expect(doc.visibility).toBe('Public')
+      expect(doc.summary).toBe('Batch multiple operations as a single undo/redo step.')
       expect(doc.description).toBe(`\
 Batch multiple operations as a single undo/redo step.
 
 Here is some description.\
 `
-      );
-      expect(doc.returnValue).not.toBeDefined();
-      expect(doc.examples).not.toBeDefined();
-      expect(doc.delegation).not.toBeDefined();
-    });
+      )
+      expect(doc.returnValue).not.toBeDefined()
+      expect(doc.examples).not.toBeDefined()
+      expect(doc.delegation).not.toBeDefined()
+    })
 
-    it("parses the description when there are code blocks", function() {
+    it('parses the description when there are code blocks', function () {
       const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
@@ -54,11 +54,11 @@ Here is some description.
 \`\`\`
 for a in [1, 2, 3]
 \`\`\`\
-`;
-      const doc = parse(str);
+`
+      const doc = parse(str)
 
-      expect(doc.visibility).toBe('Public');
-      expect(doc.summary).toBe('Batch multiple operations as a single undo/redo step.');
+      expect(doc.visibility).toBe('Public')
+      expect(doc.summary).toBe('Batch multiple operations as a single undo/redo step.')
       expect(doc.description).toBe(`\
 Batch multiple operations as a single undo/redo step.
 
@@ -72,10 +72,10 @@ Here is some description.
 for a in [1, 2, 3]
 \`\`\`\
 `
-      );
-    });
+      )
+    })
 
-    it("parses the description when there are headings", function() {
+    it('parses the description when there are headings', function () {
       const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
@@ -83,11 +83,11 @@ Public: Batch multiple operations as a single undo/redo step.
 ## Ok, computer
 
 Do your thing\
-`;
-      const doc = parse(str);
+`
+      const doc = parse(str)
 
-      expect(doc.visibility).toBe('Public');
-      expect(doc.summary).toBe('Batch multiple operations as a single undo/redo step.');
+      expect(doc.visibility).toBe('Public')
+      expect(doc.summary).toBe('Batch multiple operations as a single undo/redo step.')
       expect(doc.description).toBe(`\
 Batch multiple operations as a single undo/redo step.
 
@@ -95,10 +95,10 @@ Batch multiple operations as a single undo/redo step.
 
 Do your thing\
 `
-      );
-    });
+      )
+    })
 
-    it("parses the description when there are blockquotes", function() {
+    it('parses the description when there are blockquotes', function () {
       const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
@@ -109,11 +109,11 @@ Public: Batch multiple operations as a single undo/redo step.
 Do your thing
 
 > a second block\
-`;
-      const doc = parse(str);
+`
+      const doc = parse(str)
 
-      expect(doc.visibility).toBe('Public');
-      expect(doc.summary).toBe('Batch multiple operations as a single undo/redo step.');
+      expect(doc.visibility).toBe('Public')
+      expect(doc.summary).toBe('Batch multiple operations as a single undo/redo step.')
       expect(doc.description).toBe(`\
 Batch multiple operations as a single undo/redo step.
 
@@ -124,11 +124,11 @@ Do your thing
 
 > a second block\
 `
-      );
-    });
+      )
+    })
 
-    describe('when there are lists in the description', function() {
-      it("parses the description when there are lists that are not arg lists", function() {
+    describe('when there are lists in the description', function () {
+      it('parses the description when there are lists that are not arg lists', function () {
         const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
@@ -152,11 +152,11 @@ blah
 * six
 
 Painful.\
-`;
-        const doc = parse(str);
+`
+        const doc = parse(str)
 
-        expect(doc.visibility).toBe('Public');
-        expect(doc.summary).toBe('Batch multiple operations as a single undo/redo step.');
+        expect(doc.visibility).toBe('Public')
+        expect(doc.summary).toBe('Batch multiple operations as a single undo/redo step.')
         expect(doc.description).toBe(`\
 Batch multiple operations as a single undo/redo step.
 
@@ -181,10 +181,10 @@ blah
 
 Painful.\
 `
-        );
-      });
+        )
+      })
 
-      it("description lists do not interfere with the arguments", function() {
+      it('description lists do not interfere with the arguments', function () {
         const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
@@ -194,11 +194,11 @@ Public: Batch multiple operations as a single undo/redo step.
 Rainbows
 
 * \`fn\` A {Function} to call inside the transaction.\
-`;
-        const doc = parse(str);
+`
+        const doc = parse(str)
 
-        expect(doc.visibility).toBe('Public');
-        expect(doc.summary).toBe('Batch multiple operations as a single undo/redo step.');
+        expect(doc.visibility).toBe('Public')
+        expect(doc.summary).toBe('Batch multiple operations as a single undo/redo step.')
         expect(doc.description).toBe(`\
 Batch multiple operations as a single undo/redo step.
 
@@ -207,58 +207,58 @@ Batch multiple operations as a single undo/redo step.
 
 Rainbows\
 `
-        );
+        )
         expect(doc.arguments).toEqualJson([{
           name: 'fn',
           description: 'A {Function} to call inside the transaction.',
           type: 'Function',
           isOptional: false
         }
-        ]);
-    });
-  });
+        ])
+      })
+    })
 
-    describe("with different visibilities", function() {
-      it("parses a public visibility", function() {
-        const doc = parse("Public: Batch multiple operations as a single undo/redo step.");
-        expect(doc.visibility).toBe('Public');
-        expect(doc.isPublic()).toBe(true);
-      });
+    describe('with different visibilities', function () {
+      it('parses a public visibility', function () {
+        const doc = parse('Public: Batch multiple operations as a single undo/redo step.')
+        expect(doc.visibility).toBe('Public')
+        expect(doc.isPublic()).toBe(true)
+      })
 
-      it("parses Essential visibility", function() {
-        const doc = parse("Essential: Batch multiple operations as a single undo/redo step.");
-        expect(doc.visibility).toBe('Essential');
-        expect(doc.isPublic()).toBe(true);
-      });
+      it('parses Essential visibility', function () {
+        const doc = parse('Essential: Batch multiple operations as a single undo/redo step.')
+        expect(doc.visibility).toBe('Essential')
+        expect(doc.isPublic()).toBe(true)
+      })
 
-      it("parses a private visibility", function() {
-        const doc = parse("Private: Batch multiple operations as a single undo/redo step.");
-        expect(doc.visibility).toBe('Private');
-        expect(doc.isPublic()).toBe(false);
-      });
+      it('parses a private visibility', function () {
+        const doc = parse('Private: Batch multiple operations as a single undo/redo step.')
+        expect(doc.visibility).toBe('Private')
+        expect(doc.isPublic()).toBe(false)
+      })
 
-      it("parses an internal visibility", function() {
-        const doc = parse("Internal: Batch multiple operations as a single undo/redo step.");
-        expect(doc.visibility).toBe('Internal');
-        expect(doc.isPublic()).toBe(false);
-      });
+      it('parses an internal visibility', function () {
+        const doc = parse('Internal: Batch multiple operations as a single undo/redo step.')
+        expect(doc.visibility).toBe('Internal')
+        expect(doc.isPublic()).toBe(false)
+      })
 
-      it("parses no visibility", function() {
-        const doc = parse("Batch multiple operations as a single undo/redo step.");
-        expect(doc.visibility).toBe('Private');
-        expect(doc.isPublic()).toBe(false);
-      });
-    });
-  });
+      it('parses no visibility', function () {
+        const doc = parse('Batch multiple operations as a single undo/redo step.')
+        expect(doc.visibility).toBe('Private')
+        expect(doc.isPublic()).toBe(false)
+      })
+    })
+  })
 
-  describe('arguments', function() {
-    it("parses single level arguments", function() {
+  describe('arguments', function () {
+    it('parses single level arguments', function () {
       const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
 * \`fn\` A {Function} to call inside the transaction.\
-`;
-      const doc = parse(str);
+`
+      const doc = parse(str)
 
       expect(doc.arguments).toEqualJson([{
         name: 'fn',
@@ -266,17 +266,17 @@ Public: Batch multiple operations as a single undo/redo step.
         type: 'Function',
         isOptional: false
       }
-      ]);
-  });
+      ])
+    })
 
-    it("parses optional arguments", function() {
+    it('parses optional arguments', function () {
       const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
 * \`index\` {Int} index
 * \`fn\` (optional) A {Function} to call inside the transaction.\
-`;
-      const doc = parse(str);
+`
+      const doc = parse(str)
 
       expect(doc.arguments).toEqualJson([{
         name: 'index',
@@ -288,21 +288,21 @@ Public: Batch multiple operations as a single undo/redo step.
         description: 'A {Function} to call inside the transaction.',
         type: 'Function',
         isOptional: true
-      }]);
-  });
+      }])
+    })
 
-    it("parses names with all the accepted characters", function() {
+    it('parses names with all the accepted characters', function () {
       const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
 * \`oneTWO3.4-5_6\` A {Function} to call inside the transaction.\
-`;
-      const doc = parse(str);
+`
+      const doc = parse(str)
 
-      expect(doc.arguments[0].name).toEqual('oneTWO3.4-5_6');
-    });
+      expect(doc.arguments[0].name).toEqual('oneTWO3.4-5_6')
+    })
 
-    it("parses arguments with code blocks", function() {
+    it('parses arguments with code blocks', function () {
       const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
@@ -311,23 +311,23 @@ Public: Batch multiple operations as a single undo/redo step.
   a = 1
   \`\`\`
 * \`something\` {Object} something\
-`;
-      const doc = parse(str);
+`
+      const doc = parse(str)
 
       expect(doc.arguments).toEqualJson([{
         name: 'options',
-        description: "{Object} options hash\n```js\na = 1\n```",
+        description: '{Object} options hash\n```js\na = 1\n```',
         type: 'Object',
         isOptional: false
       }, {
         name: 'something',
-        description: "{Object} something",
+        description: '{Object} something',
         type: 'Object',
         isOptional: false
-      }]);
-  });
+      }])
+    })
 
-    it('parses non-argument sublists as description', function() {
+    it('parses non-argument sublists as description', function () {
       const str = `\
 Public: Create a marker with the given range.
 
@@ -337,12 +337,12 @@ Public: Create a marker with the given range.
   * __surround__: The marker is invalidated by changes that completely surround it.
 
 Returns a {Marker}\
-`;
-      const doc = parse(str);
+`
+      const doc = parse(str)
 
       expect(doc.arguments).toEqualJson([{
         name: 'range',
-        description: "{Range}",
+        description: '{Range}',
         type: 'Range',
         isOptional: false
       }, {
@@ -354,10 +354,10 @@ A hash of key-value pairs
 `,
         type: null,
         isOptional: false
-      }]);
-  });
+      }])
+    })
 
-    it("handles nested arguments", function() {
+    it('handles nested arguments', function () {
       const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
@@ -367,8 +367,8 @@ Public: Batch multiple operations as a single undo/redo step.
     * \`1.2.1\` four
   * \`1.3\` five
 * \`2\` six\
-`;
-      const doc = parse(str);
+`
+      const doc = parse(str)
 
       expect(doc.arguments).toEqualJson([{
         name: '1',
@@ -380,7 +380,7 @@ Public: Batch multiple operations as a single undo/redo step.
           description: 'two',
           type: null,
           isOptional: false
-        },{
+        }, {
           name: '1.2',
           description: 'three',
           type: null,
@@ -391,21 +391,21 @@ Public: Batch multiple operations as a single undo/redo step.
             type: null,
             isOptional: false
           }]
-        },{
+        }, {
           name: '1.3',
           description: 'five',
           type: null,
           isOptional: false
         }]
-      },{
+      }, {
         name: '2',
         description: 'six',
         type: null,
         isOptional: false
-      }]);
-  });
+      }])
+    })
 
-    it("parses out an 'extra' description after the arguments", function() {
+    it("parses out an 'extra' description after the arguments", function () {
       const str = `\
 Public: Invoke the given callback when all marker \`::onDidChange\`
 observers have been notified following a change to the buffer.
@@ -421,8 +421,8 @@ The order of events following a buffer change is as follows:
 This is some more extra description
 
 Returns a {Disposable} on which \`.dispose()\` can be called to unsubscribe.\
-`;
-      const doc = parse(str);
+`
+      const doc = parse(str)
       expect(doc.description).toEqualJson(`\
 Invoke the given callback when all marker \`::onDidChange\`
 observers have been notified following a change to the buffer.
@@ -435,36 +435,36 @@ The order of events following a buffer change is as follows:
 
 This is some more extra description\
 `
-      );
+      )
       expect(doc.arguments).toEqualJson([{
-        "name": "callback",
-        "description": "{Function} to be called after markers are updated.",
-        "type": "Function",
-        "isOptional": false
+        'name': 'callback',
+        'description': '{Function} to be called after markers are updated.',
+        'type': 'Function',
+        'isOptional': false
       }
-      ]);
-  });
+      ])
+    })
 
-    describe('when there is an "Arguments" header', function() {
-      it("parses arguments without a description", function() {
+    describe('when there is an "Arguments" header', function () {
+      it('parses arguments without a description', function () {
         const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
 ## Arguments
 
 * \`something\` A {Bool}\
-`;
-        const doc = parse(str);
+`
+        const doc = parse(str)
         expect(doc.arguments).toEqualJson([{
           name: 'something',
           description: 'A {Bool}',
           type: 'Bool',
           isOptional: false
         }
-        ]);
-    });
+        ])
+      })
 
-      it("parses arguments with a description by ignoring the description", function() {
+      it('parses arguments with a description by ignoring the description', function () {
         const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
@@ -473,20 +473,20 @@ Public: Batch multiple operations as a single undo/redo step.
 This should be ignored
 
 * \`something\` A {Bool}\
-`;
-        const doc = parse(str);
+`
+        const doc = parse(str)
         expect(doc.arguments).toEqualJson([{
           name: 'something',
           description: 'A {Bool}',
           type: 'Bool',
           isOptional: false
         }
-        ]);
-    });
-  });
+        ])
+      })
+    })
 
     describe('when there are multiple "Arguments" headers describing different forms of the method', () =>
-      it("parses arguments without a description", function() {
+      it('parses arguments without a description', function () {
         const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
@@ -499,9 +499,9 @@ Public: Batch multiple operations as a single undo/redo step.
 Some description here.
 
 * \`somethingElse\` A {String}\
-`;
-        const doc = parse(str);
-        expect(doc.arguments).toBeUndefined();
+`
+        const doc = parse(str)
+        expect(doc.arguments).toBeUndefined()
         expect(doc.titledArguments).toEqualJson([{
           title: 'Form one',
           description: '',
@@ -512,7 +512,7 @@ Some description here.
             isOptional: false
           }
           ]
-        },{
+        }, {
           title: 'Form two',
           description: 'Some description here.',
           arguments: [{
@@ -522,13 +522,13 @@ Some description here.
             isOptional: false
           }
           ]
-        }]);
-    })
-  );
-});
+        }])
+      })
+  )
+  })
 
-  describe('events section', function() {
-    it("parses events with nested arguments", function() {
+  describe('events section', function () {
+    it('parses events with nested arguments', function () {
       const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
@@ -542,8 +542,8 @@ Essential: Fired when this thing happens.
 
 * \`options\` options hash
   * \`anOption\` true to do something\
-`;
-      const doc = parse(str);
+`
+      const doc = parse(str)
       expect(doc.events).toEqualJson([{
         name: 'contents-modified',
         summary: 'Fired when this thing happens.',
@@ -564,10 +564,10 @@ Essential: Fired when this thing happens.
         }
         ]
       }
-      ]);
-  });
+      ])
+    })
 
-    it("parses events with a description", function() {
+    it('parses events with a description', function () {
       const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
@@ -588,8 +588,8 @@ Public: Fired when this thing happens.
 This is a body of the thing
 
 * \`options\` options hash\
-`;
-      const doc = parse(str);
+`
+      const doc = parse(str)
       expect(doc.events).toEqualJson([{
         name: 'contents-modified',
         summary: 'Fired when this thing happens.',
@@ -603,11 +603,11 @@ This is a body of the thing
         }
         ]
       }
-      ]);
-  });
+      ])
+    })
 
     describe('when there are no options specified', () =>
-      it("parses multiple events with no options", function() {
+      it('parses multiple events with no options', function () {
         const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
@@ -622,8 +622,8 @@ This is a body of the thing
 ### another-event
 
 Public: Another\
-`;
-        const doc = parse(str);
+`
+        const doc = parse(str)
         expect(doc.events).toEqualJson([{
           name: 'contents-modified',
           summary: 'Fired when this thing happens.',
@@ -636,27 +636,27 @@ Public: Another\
           description: 'Another',
           visibility: 'Public',
           arguments: null
-        }]);
-    })
-  );
+        }])
+      })
+  )
 
     describe('when there should be no output', () =>
-      it("doesnt die when events section is messed up", function() {
+      it('doesnt die when events section is messed up', function () {
         const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
 ## Events
 
 * \`options\` options hash\
-`;
-        const doc = parse(str);
-        expect(doc.events).toEqual(null);
+`
+        const doc = parse(str)
+        expect(doc.events).toEqual(null)
       })
-    );
-  });
+    )
+  })
 
-  describe('examples section', function() {
-    it("parses Examples with a description", function() {
+  describe('examples section', function () {
+    it('parses Examples with a description', function () {
       const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
@@ -675,8 +675,8 @@ This is example two
 \`\`\`coffee
 ok = 2
 \`\`\`\
-`;
-      const doc = parse(str);
+`
+      const doc = parse(str)
       expect(doc.examples).toEqualJson([{
         description: 'This is example one',
         code: 'ok = 1',
@@ -686,7 +686,7 @@ ok = 2
 ok = 1
 \`\`\`\
 `
-      },{
+      }, {
         description: 'This is example two',
         code: 'ok = 2',
         lang: 'coffee',
@@ -695,10 +695,10 @@ ok = 1
 ok = 2
 \`\`\`\
 `
-      }]);
-  });
+      }])
+    })
 
-    it("parses Examples without a description", function() {
+    it('parses Examples without a description', function () {
       const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
@@ -713,8 +713,8 @@ ok = 1
 \`\`\`coffee
 ok = 2
 \`\`\`\
-`;
-      const doc = parse(str);
+`
+      const doc = parse(str)
       expect(doc.examples).toEqualJson([{
         description: '',
         code: 'ok = 1',
@@ -724,7 +724,7 @@ ok = 2
 ok = 1
 \`\`\`\
 `
-      },{
+      }, {
         description: '',
         code: 'ok = 2',
         lang: 'coffee',
@@ -733,23 +733,23 @@ ok = 1
 ok = 2
 \`\`\`\
 `
-      }]);
-  });
+      }])
+    })
 
-    it("ignores examples when no examples specified", function() {
+    it('ignores examples when no examples specified', function () {
       const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
 * \`something\` A {Bool}
 
 ## Examples\
-`;
-      const doc = parse(str);
-      expect(doc.examples).not.toBeDefined();
-    });
+`
+      const doc = parse(str)
+      expect(doc.examples).not.toBeDefined()
+    })
 
     describe('when there is an events section above the examples section', () =>
-      it("parses out both the Events and Examples sections", function() {
+      it('parses out both the Events and Examples sections', function () {
         const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
@@ -768,8 +768,8 @@ This is example one
 \`\`\`coffee
 ok = 1
 \`\`\`\
-`;
-        const doc = parse(str);
+`
+        const doc = parse(str)
         expect(doc.events).toEqualJson([{
           name: 'contents-modified',
           summary: 'Fired when this thing happens.',
@@ -777,7 +777,7 @@ ok = 1
           visibility: 'Public',
           arguments: null
         }
-        ]);
+        ])
         expect(doc.examples).toEqualJson([{
           description: 'This is example one',
           code: 'ok = 1',
@@ -788,22 +788,22 @@ ok = 1
 \`\`\`\
 `
         }
-        ]);
-    })
-  );
-});
+        ])
+      })
+  )
+  })
 
-  describe('parsing returns', function() {
-    describe('when there are arguments', function() {
-      it("parses returns when the arguments are before the return", function() {
+  describe('parsing returns', function () {
+    describe('when there are arguments', function () {
+      it('parses returns when the arguments are before the return', function () {
         const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
 * \`fn\` A {Function} to call inside the transaction.
 
 Returns a {Bool}\
-`;
-        const doc = parse(str);
+`
+        const doc = parse(str)
 
         expect(doc.arguments).toEqualJson([{
           name: 'fn',
@@ -811,21 +811,21 @@ Returns a {Bool}\
           type: 'Function',
           isOptional: false
         }
-        ]);
+        ])
 
         expect(doc.returnValues).toEqualJson([{
           type: 'Bool',
           description: 'Returns a {Bool}'
-        }]);
-    });
+        }])
+      })
 
-      it("parses returns when the return is the body and the args are after the return", function() {
+      it('parses returns when the return is the body and the args are after the return', function () {
         const str = `\
 Public: Returns a {Bool}
 
 * \`fn\` A {Function} to call inside the transaction.\
-`;
-        const doc = parse(str);
+`
+        const doc = parse(str)
 
         expect(doc.arguments).toEqualJson([{
           name: 'fn',
@@ -833,49 +833,49 @@ Public: Returns a {Bool}
           type: 'Function',
           isOptional: false
         }
-        ]);
+        ])
 
         expect(doc.returnValues).toEqualJson([{
           type: 'Bool',
           description: 'Returns a {Bool}'
-        }]);
-    });
-  });
+        }])
+      })
+    })
 
-    it("parses returns when they span multiple lines", function() {
+    it('parses returns when they span multiple lines', function () {
       const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
 Returns a {Bool} when
   X happens
 Returns a {Function} when something else happens\
-`;
-      const doc = parse(str);
+`
+      const doc = parse(str)
 
       expect(doc.returnValues).toEqualJson([{
         type: 'Bool',
         description: 'Returns a {Bool} when\n  X happens'
-      },{
+      }, {
         type: 'Function',
         description: 'Returns a {Function} when something else happens'
-      }]);
-  });
+      }])
+    })
 
-    it('parses returns when there is no description', function() {
+    it('parses returns when there is no description', function () {
       const str = `\
 Public: Returns {Bool} true when Y happens\
-`;
-      const doc = parse(str);
+`
+      const doc = parse(str)
 
-      expect(doc.summary).toEqual('');
-      expect(doc.description).toEqual('');
+      expect(doc.summary).toEqual('')
+      expect(doc.description).toEqual('')
       expect(doc.returnValues).toEqualJson([{
         type: 'Bool',
         description: 'Returns {Bool} true when Y happens'
-      }]);
-  });
+      }])
+    })
 
-    it("parses returns when they break paragraphs", function() {
+    it('parses returns when they break paragraphs', function () {
       const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
@@ -884,22 +884,22 @@ Returns a {Bool} when
 Returns a {Function} when something else happens
 
 Returns another {Bool} when Y happens\
-`;
-      const doc = parse(str);
+`
+      const doc = parse(str)
 
       expect(doc.returnValues).toEqualJson([{
         type: 'Bool',
         description: 'Returns a {Bool} when\n  X happens'
-      },{
+      }, {
         type: 'Function',
         description: 'Returns a {Function} when something else happens'
-      },{
+      }, {
         type: 'Bool',
         description: 'Returns another {Bool} when Y happens'
-      }]);
-  });
+      }])
+    })
 
-    it("parses return when it contains a list", function() {
+    it('parses return when it contains a list', function () {
       const str = `\
 Public: Batch multiple operations as a single undo/redo step.
 
@@ -912,8 +912,8 @@ Returns other when this code is run
 \`\`\`coffee
 a = something()
 \`\`\`\
-`;
-      const doc = parse(str);
+`
+      const doc = parse(str)
 
       expect(doc.returnValues).toEqualJson([{
         type: 'Object',
@@ -935,37 +935,37 @@ Returns other when this code is run
 a = something()
 \`\`\`\
 `
-      }]);
-  });
-    it("parses return when it contains the keyword undefined", function() {
+      }])
+    })
+    it('parses return when it contains the keyword undefined', function () {
       const str = `\
 Public: Get the active {Package} with the given name.
 
 Returns undefined.\
-`;
-      const doc = parse(str);
+`
+      const doc = parse(str)
 
       expect(doc.returnValues).toEqualJson([{
         type: null,
         description: `\
 Returns undefined.\
 `
-      }]);
-  });
-    it("parses return when it contains the keyword `undefined`", function() {
+      }])
+    })
+    it('parses return when it contains the keyword `undefined`', function () {
       const str = `\
 Public: Get the active {Package} with the given name.
 
 Returns \`undefined\`.\
-`;
-      const doc = parse(str);
+`
+      const doc = parse(str)
 
       expect(doc.returnValues).toEqualJson([{
         type: null,
         description: `\
 Returns \`undefined\`.\
 `
-      }]);
-  });
-});
-});
+      }])
+    })
+  })
+})
