@@ -4,9 +4,9 @@
   "description": "An atomdoc parser",
   "main": "./lib/atomdoc.js",
   "scripts": {
-    "test": "grunt test",
-    "prepublish": "grunt clean lint coffee"
-    "lint": "standard src spec",
+    "lint": "standard src/*.js spec/*.js",
+    "prepublish": "npm run lint",
+    "test": "npm run lint && jasmine-focused --captureExceptions spec/"
   },
   "repository": {
     "type": "git",
@@ -29,12 +29,6 @@
   "devDependencies": {
     "jasmine-focused": "1.x",
     "jasmine-json": "~0.0",
-    "grunt-contrib-coffee": "~0.7.0",
-    "grunt-cli": "~0.1.8",
-    "grunt": "~0.4.1",
-    "grunt-shell": "~0.2.2",
-    "grunt-coffeelint": "0.0.6",
-    "rimraf": "^2.5.2",
     "standard": "^10.0.3"
   },
   "standard": {
