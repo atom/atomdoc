@@ -1,7 +1,7 @@
 const _ = require('underscore')
 const marked = require('marked')
 const Doc = require('./doc')
-const {getLinkMatch, multiplyString} = require('./utils')
+const {getLinkMatch} = require('./utils')
 
 const SpecialHeadingDepth = 2
 const SpecialHeadings = /^Arguments|Events|Examples/
@@ -435,7 +435,7 @@ const generateParagraph = tokens => tokens.shift().text
 
 const generateHeading = function (tokens) {
   const token = tokens.shift()
-  return `${multiplyString('#', token.depth)} ${token.text}`
+  return `${'#'.repeat(token.depth)} ${token.text}`
 }
 
 const generateBlockquote = function (tokens) {
@@ -472,7 +472,7 @@ const generateList = function (tokens) {
   let ordered = null
   const orderedStack = []
 
-  const indent = () => multiplyString('  ', depth)
+  const indent = () => '  '.repeat(depth)
 
   while ((token = _.first(tokens))) {
     let textLines

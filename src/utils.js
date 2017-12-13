@@ -6,9 +6,5 @@ module.exports = {
     } else {
       return null
     }
-  },
-
-  multiplyString (string, times) {
-    return string.repeat(times)
   }
 }
