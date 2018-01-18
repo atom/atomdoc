@@ -2,7 +2,7 @@
   "name": "atomdoc",
   "version": "1.0.4",
   "description": "An atomdoc parser",
-  "main": "./lib/atomdoc.js",
+  "main": "./src/atomdoc.js",
   "scripts": {
     "lint": "standard src/*.js spec/*.js",
     "prepublish": "npm run lint",
