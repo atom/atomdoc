@@ -1,13 +1,17 @@
 version: "{build}"
-
-os: Windows Server 2012 R2
+platform: x64
+environment:
+  nodejs_version: "6"
 
 install:
-  - choco install atom -y
-  - cd %APPVEYOR_BUILD_FOLDER%
+  # Get the requested version of Node.js
+  - ps: Install-Product node $env:nodejs_version
   - npm install
 
 build_script:
+  # Output useful info for debugging.
+  - node --version
+  - npm --version
   - cd %APPVEYOR_BUILD_FOLDER%
   - npm test
 

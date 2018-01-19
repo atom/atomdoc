@@ -2,10 +2,11 @@
   "name": "atomdoc",
   "version": "1.0.4",
   "description": "An atomdoc parser",
-  "main": "./lib/atomdoc.js",
+  "main": "./src/atomdoc.js",
   "scripts": {
-    "test": "grunt test",
-    "prepublish": "grunt clean lint coffee"
+    "lint": "standard src/*.js spec/*.js",
+    "prepublish": "npm run lint",
+    "test": "npm run lint && jasmine-focused --captureExceptions spec/"
   },
   "repository": {
     "type": "git",
@@ -22,17 +23,23 @@
   },
   "homepage": "http://atom.github.io/atomdoc",
   "dependencies": {
-    "marked": "^0.3.6",
-    "underscore": "~1.6"
+    "marked": "^0.3.6"
   },
   "devDependencies": {
+    "dedent": "^0.7.0",
     "jasmine-focused": "1.x",
     "jasmine-json": "~0.0",
-    "grunt-contrib-coffee": "~0.7.0",
-    "grunt-cli": "~0.1.8",
-    "grunt": "~0.4.1",
-    "grunt-shell": "~0.2.2",
-    "grunt-coffeelint": "0.0.6",
-    "rimraf": "^2.5.2"
+    "standard": "^10.0.3"
+  },
+  "standard": {
+    "env": {
+      "atomtest": true,
+      "browser": true,
+      "jasmine": true,
+      "node": true
+    },
+    "globals": [
+      "atom"
+    ]
   }
 }
