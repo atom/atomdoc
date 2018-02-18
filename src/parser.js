@@ -415,7 +415,11 @@ const generateDescription = function (tokens, tokenCallback) {
       description.push(generateHeading(tokens))
     } else if (token.type === 'list_start') {
       description.push(generateList(tokens))
-    } else { break }
+    } else if (token.type === 'space') {
+      tokens.shift()
+    } else {
+      break
+    }
   }
 
   return description.join('\n\n')
