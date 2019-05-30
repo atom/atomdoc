@@ -1,6 +1,6 @@
 require('jasmine-json')
 const dedent = require('dedent')
-const { parse } = require('../src/parser')
+const {parse} = require('../src/parser')
 
 describe('parser', function () {
   describe('summary and description', function () {
@@ -544,7 +544,7 @@ describe('parser', function () {
           ]
         }])
       })
-    )
+  )
   })
 
   describe('events section', function () {
@@ -661,7 +661,7 @@ describe('parser', function () {
           arguments: null
         }])
       })
-    )
+  )
 
     describe('when there should be no output', () =>
       it('doesnt die when events section is messed up', function () {
@@ -818,7 +818,7 @@ describe('parser', function () {
         }
         ])
       })
-    )
+  )
   })
 
   describe('parsing returns', function () {

@@ -1,2 +1,2 @@
-const { parse } = require('./parser')
-module.exports = { parse }
+const {parse} = require('./parser')
+module.exports = {parse}

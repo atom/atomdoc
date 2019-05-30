@@ -1,6 +1,6 @@
 const marked = require('marked')
 const Doc = require('./doc')
-const { getLinkMatch } = require('./utils')
+const {getLinkMatch} = require('./utils')
 
 const SpecialHeadingDepth = 2
 const SpecialHeadings = /^Arguments|Events|Examples/
@@ -77,12 +77,12 @@ const parseSummaryAndDescription = function (tokens, tokenCallback) {
 
   if (isReturnValue(rawSummary)) {
     const returnValues = parseReturnValues(tokens, false)
-    return { summary, description, visibility, returnValues }
+    return {summary, description, visibility, returnValues}
   } else {
     summary = rawSummary
     description = generateDescription(tokens, tokenCallback)
     if (rawVisibility) description = description.replace(rawVisibility, '')
-    return { description, summary, visibility }
+    return {description, summary, visibility}
   }
 }
 
@@ -159,12 +159,12 @@ const parseEventsSection = function (tokens) {
       firstToken.depth === eventHeadingDepth
     ) {
       tokens.shift() // consume the header
-      const { summary, description, visibility } = parseSummaryAndDescription(
+      const {summary, description, visibility} = parseSummaryAndDescription(
         tokens, stopTokenCallback)
       const name = firstToken.text
       let args = parseArgumentList(tokens)
       if (args.length === 0) args = null
-      events.push({ name, summary, description, visibility, arguments: args })
+      events.push({name, summary, description, visibility, arguments: args})
     } else {
       break
     }
@@ -349,10 +349,10 @@ const parseListItem = function (argumentString) {
     isOptional = !!nameMatches[3]
   }
 
-  return { name, description, type, isOptional }
+  return {name, description, type, isOptional}
 }
 
-module.exports = { parse }
+module.exports = {parse}
 
 /*
 Section: Generation
