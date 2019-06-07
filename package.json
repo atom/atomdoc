@@ -23,7 +23,7 @@
   },
   "homepage": "http://atom.github.io/atomdoc",
   "dependencies": {
-    "marked": "^0.3.6"
+    "marked": "^0.6.2"
   },
   "devDependencies": {
     "dedent": "^0.7.0",
