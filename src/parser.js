@@ -19,14 +19,22 @@ Translating things from markdown into our json format.
 // Public: Parses a docString
 //
 // * `docString` a string from the documented object to be parsed
+// * `options` an optional {Object} with the following optional keys:
+//    * `parseReturns`. A {Boolean} describing whether "Returns" statements
+//      should be parsed or not. Defaults to true.
 //
 // Returns a {Doc} object
-const parse = function (docString) {
-  return new Parser().parse(docString)
+const parse = function (docString, {parseReturns} = {}) {
+  if (parseReturns == null) {
+    parseReturns = true
+  }
+
+  return new Parser(parseReturns).parse(docString)
 }
 
 class Parser {
-  constructor () {
+  constructor (parseReturns) {
+    this.parseReturns = parseReturns
     this.stopOnSectionBoundaries = this.stopOnSectionBoundaries.bind(this)
   }
 
@@ -54,7 +62,7 @@ class Parser {
         doc.events = events
       } else if ((examples = this.parseExamplesSection(tokens))) {
         doc.examples = examples
-      } else if ((returnValues = this.parseReturnValues(tokens, true))) {
+      } else if (this.parseReturns && (returnValues = this.parseReturnValues(tokens, true))) {
         doc.setReturnValues(returnValues)
       } else {
         // These tokens are basically in no-mans land. We'll add them to the
@@ -363,7 +371,7 @@ class Parser {
 
   stopOnSectionBoundaries (token, tokens) {
     if (['paragraph', 'text'].includes(token.type)) {
-      if (isReturnValue(token.text)) {
+      if (this.parseReturns && isReturnValue(token.text)) {
         return false
       }
     } else if (token.type === 'heading') {
