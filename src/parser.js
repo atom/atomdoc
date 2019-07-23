@@ -22,334 +22,366 @@ Translating things from markdown into our json format.
 //
 // Returns a {Doc} object
 const parse = function (docString) {
-  const lexer = new marked.Lexer()
-  const tokens = lexer.lex(docString)
-  const firstToken = tokens[0]
+  return new Parser().parse(docString)
+}
 
-  if (!firstToken || (firstToken.type !== 'paragraph')) {
-    throw new Error('Doc string must start with a paragraph!')
+class Parser {
+  constructor () {
+    this.stopOnSectionBoundaries = this.stopOnSectionBoundaries.bind(this)
   }
 
-  const doc = new Doc(docString)
+  parse (docString) {
+    const lexer = new marked.Lexer()
+    const tokens = lexer.lex(docString)
+    const firstToken = tokens[0]
 
-  Object.assign(doc, parseSummaryAndDescription(tokens))
-
-  while (tokens.length) {
-    let args, events, examples, returnValues, titledArgs
-    if ((titledArgs = parseTitledArgumentsSection(tokens))) {
-      if (doc.titledArguments == null) doc.titledArguments = []
-      doc.titledArguments.push(titledArgs)
-    } else if ((args = parseArgumentsSection(tokens))) {
-      doc.arguments = args
-    } else if ((events = parseEventsSection(tokens))) {
-      doc.events = events
-    } else if ((examples = parseExamplesSection(tokens))) {
-      doc.examples = examples
-    } else if ((returnValues = parseReturnValues(tokens, true))) {
-      doc.setReturnValues(returnValues)
-    } else {
-      // These tokens are basically in no-mans land. We'll add them to the
-      // description so they dont get lost.
-      const extraDescription = generateDescription(tokens, stopOnSectionBoundaries)
-      doc.description += `\n\n${extraDescription}`
+    if (!firstToken || (firstToken.type !== 'paragraph')) {
+      throw new Error('Doc string must start with a paragraph!')
     }
-  }
 
-  return doc
-}
+    const doc = new Doc(docString)
 
-const parseSummaryAndDescription = function (tokens, tokenCallback) {
-  if (tokenCallback == null) { tokenCallback = stopOnSectionBoundaries }
-  let summary = ''
-  let description = ''
-  let visibility = 'Private'
+    Object.assign(doc, this.parseSummaryAndDescription(tokens))
 
-  let rawVisibility = null
-  let rawSummary = tokens[0].text
-  if (rawSummary) {
-    const visibilityMatch = VisibilityRegex.exec(rawSummary)
-    if (visibilityMatch) {
-      visibility = visibilityMatch[1]
-      rawVisibility = visibilityMatch[0]
-      if (rawVisibility) rawSummary = rawSummary.replace(rawVisibility, '')
-    }
-  }
-
-  if (isReturnValue(rawSummary)) {
-    const returnValues = parseReturnValues(tokens, false)
-    return {summary, description, visibility, returnValues}
-  } else {
-    summary = rawSummary
-    description = generateDescription(tokens, tokenCallback)
-    if (rawVisibility) description = description.replace(rawVisibility, '')
-    return {description, summary, visibility}
-  }
-}
-
-const parseArgumentsSection = function (tokens) {
-  const firstToken = tokens[0]
-  if (firstToken && firstToken.type === 'heading') {
-    if (firstToken.text !== 'Arguments' || firstToken.depth !== SpecialHeadingDepth) return
-  } else if (firstToken && firstToken.type === 'list_start') {
-    if (!isAtArgumentList(tokens)) { return }
-  } else {
-    return
-  }
-
-  let args = null
-
-  if (firstToken.type === 'list_start') {
-    args = parseArgumentList(tokens)
-  } else {
-    tokens.shift() // consume the header
-    // consume any BS before the args list
-    generateDescription(tokens, stopOnSectionBoundaries)
-    args = parseArgumentList(tokens)
-  }
-
-  return args
-}
-
-const parseTitledArgumentsSection = function (tokens) {
-  const firstToken = tokens[0]
-  if (!firstToken || firstToken.type !== 'heading') return
-  if (!firstToken.text.startsWith('Arguments:') ||
-    firstToken.depth !== SpecialHeadingDepth
-  ) {
-    return
-  }
-
-  return {
-    title: tokens.shift().text.replace('Arguments:', '').trim(),
-    description: generateDescription(tokens, stopOnSectionBoundaries),
-    arguments: parseArgumentList(tokens)
-  }
-}
-
-const parseEventsSection = function (tokens) {
-  let firstToken = tokens[0]
-  if (
-    !firstToken ||
-    firstToken.type !== 'heading' ||
-    firstToken.text !== 'Events' ||
-    firstToken.depth !== SpecialHeadingDepth
-  ) { return }
-
-  const eventHeadingDepth = SpecialHeadingDepth + 1
-
-  // We consume until there is a heading of h3 which denotes the beginning of an event.
-  const stopTokenCallback = function (token, tokens) {
-    if ((token.type === 'heading') && (token.depth === eventHeadingDepth)) {
-      return false
-    }
-    return stopOnSectionBoundaries(token, tokens)
-  }
-
-  const events = []
-  tokens.shift() // consume the header
-
-  while (tokens.length) {
-    // We consume until there is a heading of h3 which denotes the beginning of an event.
-    generateDescription(tokens, stopTokenCallback)
-
-    firstToken = tokens[0]
-    if (
-      firstToken &&
-      firstToken.type === 'heading' &&
-      firstToken.depth === eventHeadingDepth
-    ) {
-      tokens.shift() // consume the header
-      const {summary, description, visibility} = parseSummaryAndDescription(
-        tokens, stopTokenCallback)
-      const name = firstToken.text
-      let args = parseArgumentList(tokens)
-      if (args.length === 0) args = null
-      events.push({name, summary, description, visibility, arguments: args})
-    } else {
-      break
-    }
-  }
-
-  if (events.length) { return events }
-}
-
-const parseExamplesSection = function (tokens) {
-  let firstToken = tokens[0]
-  if (
-    !firstToken ||
-    firstToken.type !== 'heading' ||
-    firstToken.text !== 'Examples' ||
-    firstToken.depth !== SpecialHeadingDepth
-  ) { return }
-
-  const examples = []
-  tokens.shift() // consume the header
-
-  while (tokens.length) {
-    const description = generateDescription(tokens, function (token, tokens) {
-      if (token.type === 'code') return false
-      return stopOnSectionBoundaries(token, tokens)
-    })
-
-    firstToken = tokens[0]
-    if (firstToken.type === 'code') {
-      const example = {
-        description,
-        lang: firstToken.lang,
-        code: firstToken.text,
-        raw: generateCode(tokens)
+    while (tokens.length) {
+      let args, events, examples, returnValues, titledArgs
+      if ((titledArgs = this.parseTitledArgumentsSection(tokens))) {
+        if (doc.titledArguments == null) doc.titledArguments = []
+        doc.titledArguments.push(titledArgs)
+      } else if ((args = this.parseArgumentsSection(tokens))) {
+        doc.arguments = args
+      } else if ((events = this.parseEventsSection(tokens))) {
+        doc.events = events
+      } else if ((examples = this.parseExamplesSection(tokens))) {
+        doc.examples = examples
+      } else if ((returnValues = this.parseReturnValues(tokens, true))) {
+        doc.setReturnValues(returnValues)
+      } else {
+        // These tokens are basically in no-mans land. We'll add them to the
+        // description so they dont get lost.
+        const extraDescription = generateDescription(tokens, this.stopOnSectionBoundaries)
+        doc.description += `\n\n${extraDescription}`
       }
-      examples.push(example)
+    }
+
+    return doc
+  }
+
+  parseSummaryAndDescription (tokens, tokenCallback) {
+    if (tokenCallback == null) { tokenCallback = this.stopOnSectionBoundaries }
+    let summary = ''
+    let description = ''
+    let visibility = 'Private'
+
+    let rawVisibility = null
+    let rawSummary = tokens[0].text
+    if (rawSummary) {
+      const visibilityMatch = VisibilityRegex.exec(rawSummary)
+      if (visibilityMatch) {
+        visibility = visibilityMatch[1]
+        rawVisibility = visibilityMatch[0]
+        if (rawVisibility) rawSummary = rawSummary.replace(rawVisibility, '')
+      }
+    }
+
+    if (isReturnValue(rawSummary)) {
+      const returnValues = this.parseReturnValues(tokens, false)
+      return {summary, description, visibility, returnValues}
     } else {
-      break
+      summary = rawSummary
+      description = generateDescription(tokens, tokenCallback)
+      if (rawVisibility) description = description.replace(rawVisibility, '')
+      return {description, summary, visibility}
     }
   }
 
-  if (examples.length) { return examples }
-}
-
-const parseReturnValues = function (tokens, consumeTokensAfterReturn) {
-  let normalizedString
-  if (consumeTokensAfterReturn == null) { consumeTokensAfterReturn = false }
-  const firstToken = tokens[0]
-  if (
-    !firstToken ||
-    !['paragraph', 'text'].includes(firstToken.type) ||
-    !isReturnValue(firstToken.text)
-  ) { return }
-
-  // there might be a `Public: ` in front of the return.
-  const returnsMatches = ReturnsRegex.exec(firstToken.text)
-  if (consumeTokensAfterReturn) {
-    normalizedString = generateDescription(tokens, () => true)
-    if (returnsMatches[1]) {
-      normalizedString = normalizedString.replace(returnsMatches[1], '')
-    }
-  } else {
-    const token = tokens.shift()
-    normalizedString = token.text
-    if (returnsMatches[1]) {
-      normalizedString = normalizedString.replace(returnsMatches[1], '')
-    }
-    normalizedString = normalizedString.replace(/\s{2,}/g, ' ')
-  }
-
-  let returnValues = null
-
-  while (normalizedString) {
-    const nextIndex = normalizedString.indexOf('Returns', 1)
-    let returnString = normalizedString
-    if (nextIndex > -1) {
-      returnString = normalizedString.substring(0, nextIndex)
-      normalizedString = normalizedString.substring(nextIndex, normalizedString.length)
+  parseArgumentsSection (tokens) {
+    const firstToken = tokens[0]
+    if (firstToken && firstToken.type === 'heading') {
+      if (firstToken.text !== 'Arguments' || firstToken.depth !== SpecialHeadingDepth) return
+    } else if (firstToken && firstToken.type === 'list_start') {
+      if (!isAtArgumentList(tokens)) { return }
     } else {
-      normalizedString = null
+      return
     }
 
-    if (returnValues == null) { returnValues = [] }
-    returnValues.push({
-      type: getLinkMatch(returnString),
-      description: returnString.trim()
-    })
+    let args = null
+
+    if (firstToken.type === 'list_start') {
+      args = this.parseArgumentList(tokens)
+    } else {
+      tokens.shift() // consume the header
+      // consume any BS before the args list
+      generateDescription(tokens, this.stopOnSectionBoundaries)
+      args = this.parseArgumentList(tokens)
+    }
+
+    return args
   }
 
-  return returnValues
-}
+  parseTitledArgumentsSection (tokens) {
+    const firstToken = tokens[0]
+    if (!firstToken || firstToken.type !== 'heading') return
+    if (!firstToken.text.startsWith('Arguments:') ||
+      firstToken.depth !== SpecialHeadingDepth
+    ) {
+      return
+    }
 
-// Parses argument lists like this one:
-//
-// * `something` A {Bool}
-//   * `somethingNested` A nested object
-const parseArgumentList = function (tokens) {
-  let depth = 0
-  let args = []
-  let argumentsList = null
-  const argumentsListStack = []
-  let argument = null
-  const argumentStack = []
+    return {
+      title: tokens.shift().text.replace('Arguments:', '').trim(),
+      description: generateDescription(tokens, this.stopOnSectionBoundaries),
+      arguments: this.parseArgumentList(tokens)
+    }
+  }
 
-  while (tokens.length && (tokens[0].type === 'list_start' || depth)) {
-    const token = tokens[0]
-    switch (token.type) {
-      case 'list_start':
-        // This list might not be a argument list. Check...
-        const parseAsArgumentList = isAtArgumentList(tokens)
-        if (parseAsArgumentList) {
-          depth++
-          if (argumentsList) argumentsListStack.push(argumentsList)
-          argumentsList = []
+  parseEventsSection (tokens) {
+    let firstToken = tokens[0]
+    if (
+      !firstToken ||
+      firstToken.type !== 'heading' ||
+      firstToken.text !== 'Events' ||
+      firstToken.depth !== SpecialHeadingDepth
+    ) { return }
+
+    const eventHeadingDepth = SpecialHeadingDepth + 1
+
+    // We consume until there is a heading of h3 which denotes the beginning of an event.
+    const stopTokenCallback = (token, tokens) => {
+      if ((token.type === 'heading') && (token.depth === eventHeadingDepth)) {
+        return false
+      }
+      return this.stopOnSectionBoundaries(token, tokens)
+    }
+
+    const events = []
+    tokens.shift() // consume the header
+
+    while (tokens.length) {
+      // We consume until there is a heading of h3 which denotes the beginning of an event.
+      generateDescription(tokens, stopTokenCallback)
+
+      firstToken = tokens[0]
+      if (
+        firstToken &&
+        firstToken.type === 'heading' &&
+        firstToken.depth === eventHeadingDepth
+      ) {
+        tokens.shift() // consume the header
+        const {summary, description, visibility} = this.parseSummaryAndDescription(
+          tokens, stopTokenCallback)
+        const name = firstToken.text
+        let args = this.parseArgumentList(tokens)
+        if (args.length === 0) args = null
+        events.push({name, summary, description, visibility, arguments: args})
+      } else {
+        break
+      }
+    }
+
+    if (events.length) { return events }
+  }
+
+  parseExamplesSection (tokens) {
+    let firstToken = tokens[0]
+    if (
+      !firstToken ||
+      firstToken.type !== 'heading' ||
+      firstToken.text !== 'Examples' ||
+      firstToken.depth !== SpecialHeadingDepth
+    ) { return }
+
+    const examples = []
+    tokens.shift() // consume the header
+
+    while (tokens.length) {
+      const description = generateDescription(tokens, (token, tokens) => {
+        if (token.type === 'code') return false
+        return this.stopOnSectionBoundaries(token, tokens)
+      })
+
+      firstToken = tokens[0]
+      if (firstToken.type === 'code') {
+        const example = {
+          description,
+          lang: firstToken.lang,
+          code: firstToken.text,
+          raw: generateCode(tokens)
+        }
+        examples.push(example)
+      } else {
+        break
+      }
+    }
+
+    if (examples.length) { return examples }
+  }
+
+  parseReturnValues (tokens, consumeTokensAfterReturn) {
+    let normalizedString
+    if (consumeTokensAfterReturn == null) { consumeTokensAfterReturn = false }
+    const firstToken = tokens[0]
+    if (
+      !firstToken ||
+      !['paragraph', 'text'].includes(firstToken.type) ||
+      !isReturnValue(firstToken.text)
+    ) { return }
+
+    // there might be a `Public: ` in front of the return.
+    const returnsMatches = ReturnsRegex.exec(firstToken.text)
+    if (consumeTokensAfterReturn) {
+      normalizedString = generateDescription(tokens, () => true)
+      if (returnsMatches[1]) {
+        normalizedString = normalizedString.replace(returnsMatches[1], '')
+      }
+    } else {
+      const token = tokens.shift()
+      normalizedString = token.text
+      if (returnsMatches[1]) {
+        normalizedString = normalizedString.replace(returnsMatches[1], '')
+      }
+      normalizedString = normalizedString.replace(/\s{2,}/g, ' ')
+    }
+
+    let returnValues = null
+
+    while (normalizedString) {
+      const nextIndex = normalizedString.indexOf('Returns', 1)
+      let returnString = normalizedString
+      if (nextIndex > -1) {
+        returnString = normalizedString.substring(0, nextIndex)
+        normalizedString = normalizedString.substring(nextIndex, normalizedString.length)
+      } else {
+        normalizedString = null
+      }
+
+      if (returnValues == null) { returnValues = [] }
+      returnValues.push({
+        type: getLinkMatch(returnString),
+        description: returnString.trim()
+      })
+    }
+
+    return returnValues
+  }
+
+  // Parses argument lists like this one:
+  //
+  // * `something` A {Bool}
+  //   * `somethingNested` A nested object
+  parseArgumentList (tokens) {
+    let depth = 0
+    let args = []
+    let argumentsList = null
+    const argumentsListStack = []
+    let argument = null
+    const argumentStack = []
+
+    while (tokens.length && (tokens[0].type === 'list_start' || depth)) {
+      const token = tokens[0]
+      switch (token.type) {
+        case 'list_start':
+          // This list might not be a argument list. Check...
+          const parseAsArgumentList = isAtArgumentList(tokens)
+          if (parseAsArgumentList) {
+            depth++
+            if (argumentsList) argumentsListStack.push(argumentsList)
+            argumentsList = []
+            tokens.shift()
+          } else if (argument) {
+            // If not, consume the list as part of the description
+            if (!argument.text) argument.text = []
+            argument.text.push(`\n${generateList(tokens)}`)
+          }
+          break
+
+        case 'list_item_start':
+        case 'loose_item_start':
+          if (argument) { argumentStack.push(argument) }
+          argument = {}
           tokens.shift()
-        } else if (argument) {
-          // If not, consume the list as part of the description
+          break
+
+        case 'code':
           if (!argument.text) argument.text = []
-          argument.text.push(`\n${generateList(tokens)}`)
-        }
-        break
+          argument.text.push(`\n${generateCode(tokens)}`)
+          break
 
-      case 'list_item_start':
-      case 'loose_item_start':
-        if (argument) { argumentStack.push(argument) }
-        argument = {}
-        tokens.shift()
-        break
+        case 'text':
+          if (!argument.text) argument.text = []
+          argument.text.push(token.text)
+          tokens.shift()
+          break
 
-      case 'code':
-        if (!argument.text) argument.text = []
-        argument.text.push(`\n${generateCode(tokens)}`)
-        break
+        case 'list_item_end':
+        case 'loose_item_end':
+          if (argument) {
+            Object.assign(argument,
+              this.parseListItem(argument.text.join(' ').replace(/ \n/g, '\n')))
+            argumentsList.push(argument)
+            delete argument.text
+          }
 
-      case 'text':
-        if (!argument.text) argument.text = []
-        argument.text.push(token.text)
-        tokens.shift()
-        break
+          argument = argumentStack.pop()
+          tokens.shift()
+          break
 
-      case 'list_item_end':
-      case 'loose_item_end':
-        if (argument) {
-          Object.assign(argument,
-            parseListItem(argument.text.join(' ').replace(/ \n/g, '\n')))
-          argumentsList.push(argument)
-          delete argument.text
-        }
+        case 'list_end':
+          depth--
+          if (argument) {
+            argument.children = argumentsList
+            argumentsList = argumentsListStack.pop()
+          } else {
+            args = argumentsList
+          }
+          tokens.shift()
+          break
 
-        argument = argumentStack.pop()
-        tokens.shift()
-        break
-
-      case 'list_end':
-        depth--
-        if (argument) {
-          argument.children = argumentsList
-          argumentsList = argumentsListStack.pop()
-        } else {
-          args = argumentsList
-        }
-        tokens.shift()
-        break
-
-      default: tokens.shift()
+        default: tokens.shift()
+      }
     }
+
+    return args
   }
 
-  return args
-}
+  parseListItem (argumentString) {
+    let isOptional
+    let name = null
+    let type = null
+    let description = argumentString
 
-const parseListItem = function (argumentString) {
-  let isOptional
-  let name = null
-  let type = null
-  let description = argumentString
+    const nameMatches = ArgumentListItemRegex.exec(argumentString)
+    if (nameMatches) {
+      name = nameMatches[1]
+      description = description.replace(nameMatches[0], '')
+      type = getLinkMatch(description)
+      isOptional = !!nameMatches[3]
+    }
 
-  const nameMatches = ArgumentListItemRegex.exec(argumentString)
-  if (nameMatches) {
-    name = nameMatches[1]
-    description = description.replace(nameMatches[0], '')
-    type = getLinkMatch(description)
-    isOptional = !!nameMatches[3]
+    return {name, description, type, isOptional}
   }
 
-  return {name, description, type, isOptional}
+  stopOnSectionBoundaries (token, tokens) {
+    if (['paragraph', 'text'].includes(token.type)) {
+      if (isReturnValue(token.text)) {
+        return false
+      }
+    } else if (token.type === 'heading') {
+      if (token.depth === SpecialHeadingDepth && SpecialHeadings.test(token.text)) {
+        return false
+      }
+    } else if (token.type === 'list_start') {
+      let listToken = null
+      for (listToken of tokens) {
+        if (listToken.type === 'text') break
+      }
+
+      // Check if list is an arguments list. If it starts with `someVar`, it is.
+      if (listToken && ArgumentListItemRegex.test(listToken.text)) return false
+    }
+
+    return true
+  }
 }
 
 module.exports = {parse}
@@ -374,28 +406,6 @@ const isAtArgumentList = function (tokens) {
       return isArgumentListItem(token.text)
     }
   }
-}
-
-const stopOnSectionBoundaries = function (token, tokens) {
-  if (['paragraph', 'text'].includes(token.type)) {
-    if (isReturnValue(token.text)) {
-      return false
-    }
-  } else if (token.type === 'heading') {
-    if (token.depth === SpecialHeadingDepth && SpecialHeadings.test(token.text)) {
-      return false
-    }
-  } else if (token.type === 'list_start') {
-    let listToken = null
-    for (listToken of tokens) {
-      if (listToken.type === 'text') break
-    }
-
-    // Check if list is an arguments list. If it starts with `someVar`, it is.
-    if (listToken && ArgumentListItemRegex.test(listToken.text)) return false
-  }
-
-  return true
 }
 
 // Will read / consume tokens down to a special section (args, events, examples)
