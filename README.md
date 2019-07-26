@@ -15,7 +15,7 @@ It's on [npm](https://www.npmjs.org/package/atomdoc).
 npm install atomdoc
 ```
 
-It has only one method, `parse`, which takes no options.
+It has only one method, `parse`:
 
 ```coffee
 AtomDoc = require 'atomdoc'
@@ -25,6 +25,9 @@ docString = """
   no arguments.
 """
 doc = AtomDoc.parse(docString)
+
+# Alternatively, you can avoid parsing "Returns" statements in documentation (useful for class-level documentation):
+doc = AtomDoc.parse(docString, {parseReturns: false})
 ```
 
 `doc` will be an object:

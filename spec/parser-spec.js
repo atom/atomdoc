@@ -1007,5 +1007,37 @@ describe('parser', function () {
                 `
       }])
     })
+
+    it('ignores return statements when `parseReturns` is false', function () {
+      const str = dedent`
+        Public: Get the active {Package} with the given name.
+
+        Returns 1.
+        Returns 2.
+
+        Returns 3.
+
+        ## Section
+
+        Returns 4.
+      `
+      const doc = parse(str, {parseReturns: false})
+
+      expect(doc.visibility).toBe('Public')
+      expect(doc.summary).toBe('Get the active {Package} with the given name.')
+      expect(doc.description).toBe(dedent`
+        Get the active {Package} with the given name.
+
+        Returns 1.
+        Returns 2.
+
+        Returns 3.
+
+        ## Section
+
+        Returns 4.
+      `)
+      expect(doc.returnValues).toBeUndefined()
+    })
   })
 })
